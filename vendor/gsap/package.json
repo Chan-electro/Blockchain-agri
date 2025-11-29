@@ -1,0 +1,7 @@
+{
+  "name": "gsap",
+  "version": "3.12.5",
+  "main": "index.js",
+  "description": "Local stubbed GSAP package for offline builds.",
+  "license": "MIT"
+}
