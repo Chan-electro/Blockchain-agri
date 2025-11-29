@@ -9,25 +9,28 @@ import RetailerDashboard from './pages/RetailerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import ConsumerScan from './pages/ConsumerScan';
 import ConsumerBatchDetails from './pages/ConsumerBatchDetails';
+import PageShell from './components/PageShell';
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/select-role" element={<RoleSelection />} />
+      <PageShell>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/select-role" element={<RoleSelection />} />
 
-        {/* Role Dashboards */}
-        <Route path="/farmer/*" element={<FarmerDashboard />} />
-        <Route path="/processor/*" element={<ProcessorDashboard />} />
-        <Route path="/logistics/*" element={<LogisticsDashboard />} />
-        <Route path="/retailer/*" element={<RetailerDashboard />} />
-        <Route path="/admin/*" element={<AdminDashboard />} />
+          {/* Role Dashboards */}
+          <Route path="/farmer/*" element={<FarmerDashboard />} />
+          <Route path="/processor/*" element={<ProcessorDashboard />} />
+          <Route path="/logistics/*" element={<LogisticsDashboard />} />
+          <Route path="/retailer/*" element={<RetailerDashboard />} />
+          <Route path="/admin/*" element={<AdminDashboard />} />
 
-        {/* Consumer Flow */}
-        <Route path="/scan" element={<ConsumerScan />} />
-        <Route path="/product/:id" element={<ConsumerBatchDetails />} />
-      </Routes>
+          {/* Consumer Flow */}
+          <Route path="/scan" element={<ConsumerScan />} />
+          <Route path="/product/:id" element={<ConsumerBatchDetails />} />
+        </Routes>
+      </PageShell>
     </Router>
   );
 }

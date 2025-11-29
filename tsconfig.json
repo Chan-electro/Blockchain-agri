@@ -25,6 +25,12 @@
         "paths": {
             "@/*": [
                 "./src/*"
+            ],
+            "gsap": [
+                "./src/lib/gsapStub"
+            ],
+            "@gsap/react": [
+                "./src/lib/gsapReactStub"
             ]
         }
     },

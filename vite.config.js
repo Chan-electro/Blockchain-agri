@@ -8,6 +8,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "gsap": path.resolve(__dirname, "./src/lib/gsapStub"),
+      "@gsap/react": path.resolve(__dirname, "./src/lib/gsapReactStub"),
     },
   },
 })
