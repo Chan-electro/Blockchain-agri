@@ -1,330 +1,184 @@
-# 🌾 AgriChain - Blockchain Supply Chain Transparency for Agriculture
+# AgriChain — on-chain supply trust for agricultural produce
 
-A comprehensive blockchain-based supply chain tracking system with **multi-stakeholder pricing transparency**. Track agricultural products from farm to table with complete price breakdown at every stage.
+A hybrid dApp that tracks a crop from farm to shelf on an Ethereum-compatible
+blockchain. Each stakeholder (farmer, processor, logistics, retailer) signs a
+role-gated transaction that adds their contribution to the price. Consumers
+scan a QR and see the entire provenance + price breakdown on-chain.
 
-## 🎯 Features
+Stack: **React 19 + Vite + Tailwind v4 + shadcn + React Query + Recharts** on
+the frontend, **Express 5 + SQLite + ethers v6** on the backend, **Solidity
+0.8.28 + OpenZeppelin AccessControl + Hardhat** for the contract.
 
-- ✅ **Multi-Stakeholder Pricing**: Transparent price tracking across Farmer → Processor → Logistics → Retailer
-- ✅ **Blockchain Immutability**: All transactions recorded on Ethereum-compatible blockchain
-- ✅ **Real-time Price Breakdown**: Consumers see exactly where their money goes
-- ✅ **Role-Based Dashboards**: Separate interfaces for each stakeholder
-- ✅ **QR Code Scanning**: Easy product verification for consumers
-- ✅ **Complete Audit Trail**: Every price addition is traceable
+## Architecture
 
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────┐
-│           Frontend (React + TypeScript)             │
-│   Farmer | Processor | Logistics | Retailer | Consumer
-└────────────────────┬────────────────────────────────┘
-                     │ REST API
-        ┌────────────▼──────────────┐
-        │  Backend (Express + SQLite) │
-        │  - API Routes              │
-        │  - Database Sync           │
-        └────────────┬────────────────┘
-                     │ Ethers.js
-        ┌────────────▼────────────────┐
-        │  Smart Contract (Solidity)  │
-        │  AgriChain.sol             │
-        │  Hardhat Network           │
-        └─────────────────────────────┘
+```mermaid
+flowchart LR
+  web["React SPA<br/>(shadcn + RQ)"] -- REST + JWT --> api["Express API<br/>(zod · pino · helmet)"]
+  api -- "ethers v6<br/>role signer" --> chain["Hardhat node<br/>(chainId 31337)"]
+  chain -- "emit events<br/>BatchCreated / ..." --> contract["AgriChain.sol<br/>(AccessControl + state machine)"]
+  api <--> db[("SQLite cache<br/>tx_hash + block_number")]
+  web -- "QR /product/:id" --> web
 ```
 
-## 📋 Prerequisites
+Role signers (derived from one `MNEMONIC`): `accounts[1]` = FARMER, `[2]` =
+PROCESSOR, `[3]` = LOGISTICS, `[4]` = RETAILER. The admin wallet
+(`accounts[0]`) holds `DEFAULT_ADMIN_ROLE` and grants the other roles at
+deploy time. The frontend never touches a key — it authenticates to the API
+with a JWT and the API signs on the user's behalf.
 
-Before running the project, ensure you have:
-
-- **Node.js** (v16 or higher)
-- **npm** or **yarn**
-- **Git**
-
-## 🚀 Installation & Setup
-
-### Step 1: Clone the Repository
+## 60-second quickstart
 
 ```bash
-git clone <repository-url>
-cd Blockchain-Agri
+npm install                           # root frontend deps
+npm --prefix smart-contract install   # hardhat + OZ
+npm --prefix backend install          # express + ethers + jwt
+
+npm run dev                           # starts chain + deploy + backend + web
+# …in a second terminal, once all four processes are up:
+npm run seed                          # 6 demo users + 5 staggered batches
 ```
 
-### Step 2: Install Dependencies
+Open <http://localhost:5173> and sign in with any demo account (password
+`demo12345`):
 
-Install dependencies for all three components:
+| Role | Email |
+|---|---|
+| Farmer | `farmer@demo.agri` |
+| Processor | `processor@demo.agri` |
+| Logistics | `logistics@demo.agri` |
+| Retailer | `retailer@demo.agri` |
+| Admin | `admin@demo.agri` |
+| Consumer | `consumer@demo.agri` |
 
-```bash
-# Install frontend dependencies
-npm install
+Then walk the demo: create a batch as farmer → switch to processor and add
+a processing fee → logistics ship → retailer receive → publish QR → visit
+`/scan` and type the batch id. Every step shows the tx hash and block
+number next to the price component.
 
-# Install smart contract dependencies
-cd smart-contract
-npm install
-cd ..
+## npm scripts (root)
 
-# Install backend dependencies
-cd backend
-npm install
-cd ..
-```
+| Script | What it does |
+|---|---|
+| `npm run dev` | Starts Hardhat node, deploys the contract, starts backend, starts Vite — all in one terminal via `concurrently`. |
+| `npm run chain` | Just `hardhat node`. |
+| `npm run deploy` | Deploys `AgriChain.sol`, grants role signers, rewrites `backend/.env` and root `.env`. |
+| `npm run backend` | Just the Express API (`node server.js`). |
+| `npm run frontend` | Just Vite (`vite`). |
+| `npm run seed` | Wipes the SQLite cache and reseeds 6 demo users + 5 demo batches. |
+| `npm run reset` | Deletes the DB, redeploys the contract, reseeds. Recovery path. |
+| `npm test` | Runs the Hardhat test suite (17 cases). |
+| `npm run build` | Production Vite build. |
+| `npm run typecheck` | `tsc --noEmit` over the frontend. |
 
-## 🎮 Running the Project
-
-You need to run **three separate services** in different terminals:
-
-### Terminal 1: Start Hardhat Network
-
-```bash
-cd smart-contract
-npx hardhat node
-```
-
-Keep this running. You should see:
-- ✅ "Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/"
-- ✅ List of 20 test accounts with 10000 ETH each
-
-### Terminal 2: Start Backend Server
-
-```bash
-cd backend
-npm start
-```
-
-Keep this running. You should see:
-- ✅ "AgriChain Backend Server"
-- ✅ "Server running on http://localhost:3001"
-- ✅ "Connected to SQLite database"
-- ✅ Contract address displayed
-
-> **Note**: On first run, the contract will be automatically deployed. The contract address is saved in `backend/.env`
-
-### Terminal 3: Start Frontend Development Server
-
-```bash
-npm run dev
-```
-
-The frontend will start on **http://localhost:5173** (or next available port)
-
-## 🧪 Testing the Complete Workflow
-
-Follow this sequence to test the multi-stakeholder pricing:
-
-### 1️⃣ Farmer Creates Batch
-
-1. Navigate to **Farmer Dashboard** (`/farmer`)
-2. Fill in the "Create New Batch" form:
-   - Crop Type: `Basmati Rice`
-   - Location: `Punjab, India`
-   - Weight: `500`
-   - **Base Price**: `100` ← New pricing field
-3. Click **"Create Batch"**
-4. Note the Batch ID from the success alert
-
-**Result**: Batch created with base price ₹100
-
-### 2️⃣ Processor Adds Processing Fee
-
-1. Navigate to **Processor Dashboard** (`/processor`)
-2. Select the newly created batch from the list
-3. Add processing details:
-   - Quality Notes: `Grade A quality`
-   - **Processing Fee**: `20`
-4. Click **"Mark as Processed"**
-
-**Result**: Total price = ₹120 (100 + 20)
-
-### 3️⃣ Logistics Adds Transport Fee
-
-1. Navigate to **Logistics Dashboard** (`/logistics`)
-2. Select the processed batch
-3. Add transport details:
-   - Route/Destination: `Farm to Processing Center`
-   - **Transport Fee**: `10`
-4. Click **"Add to Transport"**
-
-**Result**: Total price = ₹130 (100 + 20 + 10)
-
-### 4️⃣ Retailer Adds Markup
-
-1. Navigate to **Retailer Dashboard** (`/retailer`)
-2. Select the batch in transit
-3. Add retail pricing:
-   - **Retail Markup**: `50`
-4. Click **"Receive to Store"**
-
-**Result**: Total price = ₹180 (100 + 20 + 10 + 50)
-
-### 5️⃣ Consumer Views Price Breakdown
-
-1. Navigate to **Consumer Scan** (`/scan`)
-2. Enter the Batch ID (e.g., `1`)
-3. View the complete transparent breakdown:
-
-```
-Farmer:     ₹100 (55.6%)
-Processor:  ₹20  (11.1%)
-Logistics:  ₹10  (5.6%)
-Retailer:   ₹50  (27.8%)
-────────────────────────
-Total:      ₹180
-```
-
-## 📁 Project Structure
+## Project layout
 
 ```
 Blockchain-Agri/
-├── smart-contract/          # Hardhat blockchain project
-│   ├── contracts/
-│   │   └── AgriChain.sol   # Main smart contract
-│   ├── scripts/
-│   │   └── deploy.js       # Deployment script
-│   ├── hardhat.config.js
-│   └── package.json
-│
-├── backend/                 # Express API server
-│   ├── server.js           # Main server file
-│   ├── blockchain.js       # Contract interaction
-│   ├── database/
-│   │   ├── db.js          # Database helpers
-│   │   └── schema.sql     # Database schema
-│   ├── routes/
-│   │   └── api.js         # API endpoints
-│   ├── .env               # Environment config
-│   └── package.json
-│
-├── src/                    # React frontend
-│   ├── components/        # Reusable components
-│   ├── pages/             # Dashboard pages
-│   │   ├── FarmerDashboard.tsx
-│   │   ├── ProcessorDashboard.tsx
-│   │   ├── LogisticsDashboard.tsx
-│   │   ├── RetailerDashboard.tsx
-│   │   ├── ConsumerScan.tsx
-│   │   └── ConsumerBatchDetails.tsx
-│   ├── lib/
-│   │   └── api.ts         # API utilities
-│   └── main.tsx
-│
-├── package.json
-├── vite.config.js
-└── README.md
+├─ smart-contract/          Hardhat 3 project
+│  ├─ contracts/AgriChain.sol        AccessControl + enum state machine
+│  ├─ scripts/deploy.js              Deploys + grants roles + writes .envs
+│  └─ test/AgriChain.test.js         17 cases incl. role + state reverts
+├─ backend/                 Express 5 API
+│  ├─ server.js, routes/auth.js, routes/api.js
+│  ├─ middleware/{auth,requireRole,validate}.js
+│  ├─ lib/{config,wallets,errors,logger}.js
+│  ├─ database/{db.js, schema.sql}
+│  └─ scripts/seed.js                6 users + 5 staggered batches
+├─ src/                     React 19 SPA
+│  ├─ pages/                LandingPage, Login, Register, role dashboards,
+│  │                         ConsumerScan, ConsumerBatchDetails, NotFound
+│  ├─ components/ui/         shadcn primitives (card, dialog, sheet, …)
+│  ├─ components/batches/   BatchTable, BatchDetailsSheet, QRPublishDialog …
+│  ├─ components/layout/    DashboardShell
+│  ├─ components/common/    TxHashChip, StatusBadge, EmptyState, ErrorBoundary
+│  ├─ providers/            QueryProvider, AuthProvider
+│  ├─ hooks/                useAuth, useBatches
+│  └─ lib/api.ts            typed fetch client
+└─ docs/SHIP_PLAN.md        Phase-by-phase ship plan with progress tracker
 ```
 
-## 🔧 Configuration
+## Environment
 
-### Backend Environment Variables
+Running `npm run deploy` rewrites these files automatically; you usually
+don't touch them by hand.
 
-Located in `backend/.env`:
+**Root `.env`** (Vite picks these up):
 
-```env
-BLOCKCHAIN_URL=http://127.0.0.1:8545
-CONTRACT_ADDRESS=<auto-filled-after-deployment>
+```
+VITE_API_BASE_URL=http://localhost:3001
+VITE_CHAIN_NAME=Hardhat #31337
+VITE_CONTRACT_ADDRESS=0x…
+```
+
+**`backend/.env`**:
+
+```
 PORT=3001
+FRONTEND_URL=http://localhost:5173
+BLOCKCHAIN_URL=http://127.0.0.1:8545
+CONTRACT_ADDRESS=0x…
+MNEMONIC=test test test test test test test test test test test junk
+JWT_SECRET=dev-secret-change-me-in-production
 ```
 
-### Frontend Configuration
+The default `MNEMONIC` is the standard Hardhat test phrase. It's safe
+for localhost only — never use it on a public network.
 
-The frontend connects to the backend at `http://localhost:3001`. Update in [`src/lib/api.ts`](file:///e:/2025%20projects/Blockchain-Agri/src/lib/api.ts#L2) if needed.
+## API surface (all under `/api`)
 
-## 📡 API Endpoints
+| Method | Path | Auth | Role | Notes |
+|---|---|---|---|---|
+| POST | `/auth/register` | — | — | rate-limited, returns `{token,user}` |
+| POST | `/auth/login` | — | — | rate-limited |
+| GET | `/auth/me` | JWT | any | |
+| POST | `/batch/create` | JWT | FARMER | creates batch on-chain |
+| POST | `/batch/process` | JWT | PROCESSOR | adds processing fee |
+| POST | `/batch/ship` | JWT | LOGISTICS | marks in transit |
+| POST | `/batch/receive` | JWT | RETAILER | applies retail markup |
+| POST | `/batch/update` | JWT | role-matching | legacy dispatcher |
+| GET | `/batch/:id` | — | — | public consumer read |
+| GET | `/batches` | — | — | public, optional `?status=` |
+| GET | `/stats/count` | — | — | on-chain batch count |
+| GET | `/admin/overview` | JWT | ADMIN | stats + volume series + activity |
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/batch/create` | POST | Create new batch with base price |
-| `/api/batch/update` | POST | Add stakeholder fees (processor/logistics/retailer) |
-| `/api/batch/:id` | GET | Get batch details with price breakdown |
-| `/api/batches` | GET | Get all batches |
-| `/api/stats/count` | GET | Get total batch count |
-| `/deploy` | POST | Deploy smart contract (setup only) |
+Every write response has the DB shape (`total_price`, `farmer_address`, full
+`priceBreakdown`) **plus** `{ txHash, blockNumber, contractAddress }` so the
+frontend can display on-chain proof inline.
 
-## 🎨 Role-Based Routes
+## Security notes (what changed vs. the v0 baseline)
 
-| Route | Role | Description |
-|-------|------|-------------|
-| `/` | - | Landing page |
-| `/role-selection` | - | Choose stakeholder role |
-| `/farmer` | Farmer | Create batches, set base price |
-| `/processor` | Processor | Add processing fees |
-| `/logistics` | Logistics | Add transport fees |
-| `/retailer` | Retailer | Add retail markup |
-| `/scan` | Consumer | Scan QR / Search batch |
-| `/product/:id` | Consumer | View price breakdown |
+- **Contract**: OpenZeppelin `AccessControl` gates every write; `Status`
+  enum + `require` guards prevent state skipping. 17 tests incl. wrong-role
+  and out-of-order reverts.
+- **Backend**: JWT Bearer auth with bcryptjs password hashing, zod
+  validation at the API boundary, `requireRole` per route, helmet CSP
+  headers, `cors({origin:FRONTEND_URL})`, `express-rate-limit` on auth and
+  write routes, structured `{success, error:{code,message}}` envelope.
+- **DB-chain sync**: writes go to chain first (`await tx.wait()`), then
+  DB — so a revert leaves no orphan row. `tx_hash` is captured on both
+  `batches` and `price_components`.
 
-## 🛠️ Development Scripts
+## Deploying to a public testnet (optional)
 
-### Frontend
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
-```
+The plan intentionally ships against local Hardhat. To deploy to Polygon
+Amoy or Base Sepolia:
 
-### Backend
-```bash
-npm start            # Start server
-npm run dev          # Start with nodemon (auto-reload)
-```
+1. Add a network to `smart-contract/hardhat.config.js`:
+   ```js
+   networks: {
+     amoy: { type: "http", url: process.env.AMOY_RPC_URL, accounts: [process.env.DEPLOYER_PK] },
+   }
+   ```
+2. Fund the deployer wallet from the Amoy faucet.
+3. Run `npm run deploy --network=amoy` and update `BLOCKCHAIN_URL`,
+   `MNEMONIC` (or switch to explicit `PRIVATE_KEY`), and `CONTRACT_ADDRESS`
+   in `backend/.env`.
+4. Rotate `JWT_SECRET` for production. Consider moving off the default
+   mnemonic — in a real deployment each role would use its own key or
+   connect its own wallet.
 
-### Smart Contract
-```bash
-npx hardhat compile  # Compile contracts
-npx hardhat test     # Run tests
-npx hardhat node     # Start local network
-```
+## Ship-ready plan
 
-## 🔍 Troubleshooting
-
-### Contract Not Deployed
-
-If backend shows "CONTRACT_ADDRESS not set":
-
-1. Ensure Hardhat network is running
-2. Send POST request to `http://localhost:3001/deploy`
-3. Contract address will be saved automatically
-
-### Port Already in Use
-
-- **Frontend (5173)**: Vite will auto-increment to next port
-- **Backend (3001)**: Change `PORT` in `backend/.env`
-- **Hardhat (8545)**: Stop existing instance
-
-### Database Issues
-
-Delete and recreate database:
-```bash
-cd backend
-rm -rf database/agrichain.db
-npm start  # Will recreate automatically
-```
-
-## 📚 Technologies Used
-
-- **Frontend**: React, TypeScript, Vite, Tailwind CSS, Framer Motion
-- **Backend**: Express.js, SQLite, ethers.js
-- **Blockchain**: Solidity, Hardhat, Ethereum
-- **Other**: Lucide Icons, shadcn/ui components
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
-
-## 📄 License
-
-This project is licensed under the ISC License.
-
-## 🙏 Acknowledgments
-
-- Built with modern web technologies
-- Blockchain powered by Ethereum
-- UI components from shadcn/ui
-
----
-
-**Made with ❤️ for transparent agriculture supply chains**
-
-For detailed implementation documentation, see [`walkthrough.md`](file:///C:/Users/User/.gemini/antigravity/brain/57717d8e-535d-4432-84dc-2f855af171fc/walkthrough.md)
+The staged rewrite from the baseline MVP to what you see now is documented
+phase-by-phase in [`docs/SHIP_PLAN.md`](./docs/SHIP_PLAN.md), including a
+progress tracker table at the top.
