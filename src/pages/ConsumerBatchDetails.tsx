@@ -5,6 +5,7 @@ import {
   ArrowLeft, CheckCircle, Truck, ShoppingBag, Leaf, MapPin,
   Loader2, AlertCircle, Factory,
 } from "lucide-react";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip as ReTooltip } from "recharts";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +32,13 @@ function roleAccent(role: string) {
     default: return "text-muted-foreground bg-muted";
   }
 }
+
+const PIE_COLOR: Record<string, string> = {
+  FARMER: "#16a34a",
+  PROCESSOR: "#2563eb",
+  LOGISTICS: "#d97706",
+  RETAILER: "#9333ea",
+};
 
 export default function ConsumerBatchDetails() {
   const { batchId } = useParams<{ batchId: string }>();
@@ -123,6 +131,55 @@ export default function ConsumerBatchDetails() {
               />
             </CardHeader>
           </Card>
+
+          {/* Price share pie */}
+          {handoffCount > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Price share by stakeholder</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-[240px_1fr] sm:items-center">
+                  <div className="h-[240px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={batch.priceBreakdown}
+                          dataKey="amount"
+                          nameKey="role"
+                          innerRadius={50}
+                          outerRadius={90}
+                          paddingAngle={2}
+                        >
+                          {batch.priceBreakdown.map((c, i) => (
+                            <Cell key={i} fill={PIE_COLOR[c.role.toUpperCase()] ?? "#94a3b8"} />
+                          ))}
+                        </Pie>
+                        <ReTooltip
+                          formatter={(value) => [`₹${value as number}`, "Amount"]}
+                          contentStyle={{ borderRadius: 8, border: "1px solid hsl(var(--border))" }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <ul className="space-y-1.5 text-sm">
+                    {batch.priceBreakdown.map((c, i) => {
+                      const pct = total > 0 ? ((c.amount / total) * 100).toFixed(1) : "0";
+                      return (
+                        <li key={i} className="flex items-center justify-between gap-3">
+                          <span className="flex items-center gap-2">
+                            <span className="size-2.5 rounded-full" style={{ background: PIE_COLOR[c.role.toUpperCase()] ?? "#94a3b8" }} />
+                            <span className="font-medium">{c.role}</span>
+                          </span>
+                          <span className="text-muted-foreground">₹{c.amount} · {pct}%</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Timeline */}
           <Card>
