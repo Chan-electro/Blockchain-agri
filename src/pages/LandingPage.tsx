@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Leaf, Settings, Truck, ShoppingCart, User, BarChart, Scan } from 'lucide-react';
@@ -78,8 +77,8 @@ const LandingPage = () => {
                             <div className="text-4xl mb-4 text-primary group-hover:text-primary/80 transition-colors flex justify-center">{item.icon}</div>
                             <h3 className="text-2xl font-semibold mb-2">{item.role}</h3>
                             <p className="text-muted-foreground mb-6">{item.desc}</p>
-                            <Link to="/select-role" className="inline-block px-4 py-2 rounded-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors text-sm font-medium">
-                                Try as {item.role}
+                            <Link to="/register" className="inline-block px-4 py-2 rounded-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors text-sm font-medium">
+                                Sign up as {item.role}
                             </Link>
                         </motion.div>
                     ))}
