@@ -10,8 +10,10 @@
 | 3 | Frontend foundation | DONE | `7c7337e` |
 | 4 | Role dashboards | DONE | `5a73457` |
 | 5 | Consumer flow polish | DONE | `4091f80` |
-| 6 | DX + docs | DONE | this commit |
-| 7 | Harden + ship | IN PROGRESS | — |
+| 6 | DX + docs | DONE | `cf06042` |
+| 7 | Harden + ship | DONE | this commit |
+
+**Plan complete.** All 8 phases landed. Run `npm install && npm run dev && npm run seed` for the demo.
 
 > This tracker is updated after each phase wraps. Global status of the repo can be read at a glance here.
 
