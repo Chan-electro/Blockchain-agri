@@ -34,9 +34,13 @@ const processSchema = z.object({
     description: z.string().max(256).optional(),
 });
 
-function withTxMeta(batch, txHash, blockNumber) {
+// Build the canonical write-response: DB row (snake_case) + priceBreakdown + tx meta.
+async function buildWriteResponse(batchId, txHash, blockNumber) {
+    const dbRow = await dbHelpers.getBatch(batchId);
+    const priceBreakdown = await dbHelpers.getPriceBreakdown(batchId);
     return {
-        ...batch,
+        ...dbRow,
+        priceBreakdown,
         txHash,
         blockNumber,
         contractAddress: config.contractAddress,
@@ -111,7 +115,8 @@ router.post(
             });
 
             logger.info({ batchId, txHash, by: req.user.email }, 'Batch created');
-            res.status(201).json(successResponse(withTxMeta(batchDetails, txHash, blockNumber)));
+            const response = await buildWriteResponse(batchDetails.id, txHash, blockNumber);
+            res.status(201).json(successResponse(response));
         } catch (err) {
             next(err);
         }
@@ -132,7 +137,8 @@ router.post(
             const batchDetails = await blockchain.getBatchDetails(batchId);
             await syncBatchToDb(batchDetails, txHash, blockNumber, txHash);
             logger.info({ batchId, txHash, by: req.user.email }, 'Batch processed');
-            res.json(successResponse(withTxMeta(batchDetails, txHash, blockNumber)));
+            const response = await buildWriteResponse(batchId, txHash, blockNumber);
+            res.json(successResponse(response));
         } catch (err) {
             next(err);
         }
@@ -153,7 +159,8 @@ router.post(
             const batchDetails = await blockchain.getBatchDetails(batchId);
             await syncBatchToDb(batchDetails, txHash, blockNumber, txHash);
             logger.info({ batchId, txHash, by: req.user.email }, 'Batch in transit');
-            res.json(successResponse(withTxMeta(batchDetails, txHash, blockNumber)));
+            const response = await buildWriteResponse(batchId, txHash, blockNumber);
+            res.json(successResponse(response));
         } catch (err) {
             next(err);
         }
@@ -174,7 +181,8 @@ router.post(
             const batchDetails = await blockchain.getBatchDetails(batchId);
             await syncBatchToDb(batchDetails, txHash, blockNumber, txHash);
             logger.info({ batchId, txHash, by: req.user.email }, 'Batch at retail');
-            res.json(successResponse(withTxMeta(batchDetails, txHash, blockNumber)));
+            const response = await buildWriteResponse(batchId, txHash, blockNumber);
+            res.json(successResponse(response));
         } catch (err) {
             next(err);
         }
@@ -202,7 +210,8 @@ router.post('/batch/update', writeLimiter, auth, validate(updateSchema), async (
 
         const batchDetails = await blockchain.getBatchDetails(batchId);
         await syncBatchToDb(batchDetails, result.txHash, result.blockNumber, result.txHash);
-        res.json(successResponse(withTxMeta(batchDetails, result.txHash, result.blockNumber)));
+        const response = await buildWriteResponse(batchId, result.txHash, result.blockNumber);
+        res.json(successResponse(response));
     } catch (err) {
         next(err);
     }
