@@ -8,9 +8,9 @@
 | 1 | Smart contract v2 | DONE | `dac73ee` |
 | 2 | Backend v2 | DONE | `85a9e06` |
 | 3 | Frontend foundation | DONE | `7c7337e` |
-| 4 | Role dashboards | DONE | this commit |
-| 5 | Consumer flow polish | IN PROGRESS | — |
-| 6 | DX + docs | PENDING | — |
+| 4 | Role dashboards | DONE | `5a73457` |
+| 5 | Consumer flow polish | DONE | this commit |
+| 6 | DX + docs | IN PROGRESS | — |
 | 7 | Harden + ship | PENDING | — |
 
 > This tracker is updated after each phase wraps. Global status of the repo can be read at a glance here.
