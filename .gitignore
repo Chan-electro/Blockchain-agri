@@ -47,3 +47,6 @@ smart-contract/typechain-types/
 
 # Local backups
 .backup/
+
+# Claude Code local settings
+.claude/settings.local.json
