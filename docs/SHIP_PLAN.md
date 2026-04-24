@@ -6,8 +6,8 @@
 |---|---|---|---|
 | 0 | Freeze baseline | DONE | `e8fd24b` + tag `v0-baseline` |
 | 1 | Smart contract v2 | DONE | `dac73ee` |
-| 2 | Backend v2 | IN PROGRESS | — |
-| 3 | Frontend foundation | PENDING | — |
+| 2 | Backend v2 | DONE | this commit |
+| 3 | Frontend foundation | IN PROGRESS | — |
 | 4 | Role dashboards | PENDING | — |
 | 5 | Consumer flow polish | PENDING | — |
 | 6 | DX + docs | PENDING | — |
