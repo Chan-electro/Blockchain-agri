@@ -1,182 +1,279 @@
 const express = require('express');
-const { blockchain } = require('../blockchain');
+const rateLimit = require('express-rate-limit');
+const { z } = require('zod');
+
+const config = require('../lib/config');
+const blockchain = require('../blockchain');
 const { dbHelpers } = require('../database/db');
+const { AppError, successResponse } = require('../lib/errors');
+const auth = require('../middleware/auth');
+const requireRole = require('../middleware/requireRole');
+const validate = require('../middleware/validate');
+const logger = require('../lib/logger');
 
 const router = express.Router();
 
-// Create a new batch
-router.post('/batch/create', async (req, res) => {
-    try {
-        const { crop, weight, location, basePrice } = req.body;
+const writeLimiter = rateLimit({
+    windowMs: 60_000,
+    limit: 30,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many write requests, slow down' } },
+});
 
-        if (!crop || !weight || !location || basePrice === undefined) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
+const createBatchSchema = z.object({
+    crop: z.string().min(1).max(64),
+    weight: z.string().min(1).max(32),
+    location: z.string().min(1).max(128),
+    basePrice: z.number().int().positive(),
+});
 
-        // Create batch on blockchain
-        const { receipt, batchId } = await blockchain.createBatch(crop, weight, location, basePrice);
+const processSchema = z.object({
+    batchId: z.number().int().positive(),
+    fee: z.number().int().positive(),
+    description: z.string().max(256).optional(),
+});
 
-        if (!batchId) {
-            throw new Error('Failed to get batch ID from transaction');
-        }
+function withTxMeta(batch, txHash, blockNumber) {
+    return {
+        ...batch,
+        txHash,
+        blockNumber,
+        contractAddress: config.contractAddress,
+    };
+}
 
-        // Get full batch details from blockchain
-        const batchDetails = await blockchain.getBatchDetails(batchId);
+async function syncBatchToDb(batchDetails, txHash, blockNumber, priceTxHash) {
+    await dbHelpers.upsertBatch({
+        id: batchDetails.id,
+        farmer_address: batchDetails.farmer,
+        crop: batchDetails.crop,
+        weight: batchDetails.weight,
+        location: batchDetails.location,
+        status: batchDetails.status,
+        total_price: batchDetails.totalPrice,
+        tx_hash: txHash,
+        block_number: blockNumber,
+        created_at: batchDetails.createdAt * 1000,
+        updated_at: Date.now(),
+    });
+    const latest = batchDetails.priceBreakdown[batchDetails.priceBreakdown.length - 1];
+    await dbHelpers.insertPriceComponent({
+        batch_id: batchDetails.id,
+        stakeholder_address: latest.stakeholder,
+        role: latest.role,
+        amount: latest.amount,
+        description: latest.description,
+        timestamp: latest.timestamp * 1000,
+        tx_hash: priceTxHash,
+        block_number: blockNumber,
+    });
+}
 
-        // Save to database
-        await dbHelpers.upsertBatch({
-            id: batchDetails.id,
-            farmer_address: batchDetails.farmer,
-            crop: batchDetails.crop,
-            weight: batchDetails.weight,
-            location: batchDetails.location,
-            status: batchDetails.status,
-            total_price: batchDetails.totalPrice,
-            created_at: Date.now(),
-            updated_at: Date.now()
-        });
+// Create batch (FARMER only)
+router.post(
+    '/batch/create',
+    writeLimiter,
+    auth,
+    requireRole('FARMER'),
+    validate(createBatchSchema),
+    async (req, res, next) => {
+        try {
+            const { crop, weight, location, basePrice } = req.body;
+            const { txHash, blockNumber, batchId } = await blockchain.createBatch({
+                role: 'FARMER', crop, weight, location, basePrice,
+            });
+            if (!batchId) throw new AppError('CHAIN_ERROR', 'Failed to resolve batch ID from receipt', 502);
 
-        // Save price component
-        for (const component of batchDetails.priceBreakdown) {
+            const batchDetails = await blockchain.getBatchDetails(batchId);
+            await dbHelpers.upsertBatch({
+                id: batchDetails.id,
+                farmer_address: batchDetails.farmer,
+                crop: batchDetails.crop,
+                weight: batchDetails.weight,
+                location: batchDetails.location,
+                status: batchDetails.status,
+                total_price: batchDetails.totalPrice,
+                tx_hash: txHash,
+                block_number: blockNumber,
+                created_at: batchDetails.createdAt * 1000,
+                updated_at: Date.now(),
+            });
             await dbHelpers.insertPriceComponent({
                 batch_id: batchDetails.id,
-                stakeholder_address: component.stakeholder,
-                role: component.role,
-                amount: component.amount,
-                description: component.description,
-                timestamp: component.timestamp
+                stakeholder_address: batchDetails.priceBreakdown[0].stakeholder,
+                role: batchDetails.priceBreakdown[0].role,
+                amount: batchDetails.priceBreakdown[0].amount,
+                description: batchDetails.priceBreakdown[0].description,
+                timestamp: batchDetails.priceBreakdown[0].timestamp * 1000,
+                tx_hash: txHash,
+                block_number: blockNumber,
             });
+
+            logger.info({ batchId, txHash, by: req.user.email }, 'Batch created');
+            res.status(201).json(successResponse(withTxMeta(batchDetails, txHash, blockNumber)));
+        } catch (err) {
+            next(err);
         }
-
-        res.json({
-            success: true,
-            batchId: batchDetails.id,
-            transactionHash: receipt.hash,
-            batch: batchDetails
-        });
-    } catch (error) {
-        console.error('Error creating batch:', error);
-        res.status(500).json({ error: error.message });
     }
-});
+);
 
-// Update batch (generic endpoint for all stakeholder updates)
-router.post('/batch/update', async (req, res) => {
+// Process batch (PROCESSOR only)
+router.post(
+    '/batch/process',
+    writeLimiter,
+    auth,
+    requireRole('PROCESSOR'),
+    validate(processSchema),
+    async (req, res, next) => {
+        try {
+            const { batchId, fee, description } = req.body;
+            const { txHash, blockNumber } = await blockchain.addProcessing({ batchId, fee, description });
+            const batchDetails = await blockchain.getBatchDetails(batchId);
+            await syncBatchToDb(batchDetails, txHash, blockNumber, txHash);
+            logger.info({ batchId, txHash, by: req.user.email }, 'Batch processed');
+            res.json(successResponse(withTxMeta(batchDetails, txHash, blockNumber)));
+        } catch (err) {
+            next(err);
+        }
+    }
+);
+
+// Ship batch (LOGISTICS only)
+router.post(
+    '/batch/ship',
+    writeLimiter,
+    auth,
+    requireRole('LOGISTICS'),
+    validate(processSchema),
+    async (req, res, next) => {
+        try {
+            const { batchId, fee, description } = req.body;
+            const { txHash, blockNumber } = await blockchain.updateLogistics({ batchId, fee, description });
+            const batchDetails = await blockchain.getBatchDetails(batchId);
+            await syncBatchToDb(batchDetails, txHash, blockNumber, txHash);
+            logger.info({ batchId, txHash, by: req.user.email }, 'Batch in transit');
+            res.json(successResponse(withTxMeta(batchDetails, txHash, blockNumber)));
+        } catch (err) {
+            next(err);
+        }
+    }
+);
+
+// Retailer receive (RETAILER only)
+router.post(
+    '/batch/receive',
+    writeLimiter,
+    auth,
+    requireRole('RETAILER'),
+    validate(processSchema.transform((o) => ({ batchId: o.batchId, markup: o.fee, description: o.description }))),
+    async (req, res, next) => {
+        try {
+            const { batchId, markup, description } = req.body;
+            const { txHash, blockNumber } = await blockchain.retailerReceive({ batchId, markup, description });
+            const batchDetails = await blockchain.getBatchDetails(batchId);
+            await syncBatchToDb(batchDetails, txHash, blockNumber, txHash);
+            logger.info({ batchId, txHash, by: req.user.email }, 'Batch at retail');
+            res.json(successResponse(withTxMeta(batchDetails, txHash, blockNumber)));
+        } catch (err) {
+            next(err);
+        }
+    }
+);
+
+// Legacy generic update endpoint — kept for backwards compatibility + consumer/admin tooling.
+// Dispatches to the specific role-gated route.
+const updateSchema = z.object({
+    batchId: z.number().int().positive(),
+    role: z.enum(['PROCESSOR', 'LOGISTICS', 'RETAILER']),
+    fee: z.number().int().positive(),
+    description: z.string().max(256).optional(),
+});
+router.post('/batch/update', writeLimiter, auth, validate(updateSchema), async (req, res, next) => {
     try {
         const { batchId, role, fee, description } = req.body;
-
-        if (!batchId || !role || fee === undefined) {
-            return res.status(400).json({ error: 'Missing required fields' });
+        if (req.user.role !== role) {
+            throw new AppError('FORBIDDEN', `Your role '${req.user.role}' cannot perform ${role} updates`, 403);
         }
+        let result;
+        if (role === 'PROCESSOR') result = await blockchain.addProcessing({ batchId, fee, description });
+        else if (role === 'LOGISTICS') result = await blockchain.updateLogistics({ batchId, fee, description });
+        else result = await blockchain.retailerReceive({ batchId, markup: fee, description });
 
-        let receipt;
-
-        // Call appropriate contract function based on role
-        switch (role.toUpperCase()) {
-            case 'PROCESSOR':
-                receipt = await blockchain.addProcessing(batchId, fee, description || 'Processing Fee');
-                break;
-            case 'LOGISTICS':
-                receipt = await blockchain.updateLogistics(batchId, fee, description || 'Transport Fee');
-                break;
-            case 'RETAILER':
-                receipt = await blockchain.retailerReceive(batchId, fee, description || 'Retail Markup');
-                break;
-            default:
-                return res.status(400).json({ error: 'Invalid role' });
-        }
-
-        // Get updated batch details
         const batchDetails = await blockchain.getBatchDetails(batchId);
-
-        // Update database
-        await dbHelpers.upsertBatch({
-            id: batchDetails.id,
-            farmer_address: batchDetails.farmer,
-            crop: batchDetails.crop,
-            weight: batchDetails.weight,
-            location: batchDetails.location,
-            status: batchDetails.status,
-            total_price: batchDetails.totalPrice,
-            created_at: Date.now(),
-            updated_at: Date.now()
-        });
-
-        // Save new price component
-        const latestComponent = batchDetails.priceBreakdown[batchDetails.priceBreakdown.length - 1];
-        await dbHelpers.insertPriceComponent({
-            batch_id: batchDetails.id,
-            stakeholder_address: latestComponent.stakeholder,
-            role: latestComponent.role,
-            amount: latestComponent.amount,
-            description: latestComponent.description,
-            timestamp: latestComponent.timestamp
-        });
-
-        res.json({
-            success: true,
-            transactionHash: receipt.hash,
-            batch: batchDetails
-        });
-    } catch (error) {
-        console.error('Error updating batch:', error);
-        res.status(500).json({ error: error.message });
+        await syncBatchToDb(batchDetails, result.txHash, result.blockNumber, result.txHash);
+        res.json(successResponse(withTxMeta(batchDetails, result.txHash, result.blockNumber)));
+    } catch (err) {
+        next(err);
     }
 });
 
-// Get batch by ID
-router.get('/batch/:id', async (req, res) => {
+// Reads — public (no auth) so the consumer scan page works without login
+router.get('/batch/:id', async (req, res, next) => {
     try {
-        const batchId = parseInt(req.params.id);
-
-        // Try database first (faster)
+        const batchId = parseInt(req.params.id, 10);
+        if (!Number.isFinite(batchId) || batchId <= 0) {
+            throw new AppError('INVALID_ID', 'Batch ID must be a positive integer', 400);
+        }
         const dbBatch = await dbHelpers.getBatch(batchId);
-
         if (dbBatch) {
             const priceBreakdown = await dbHelpers.getPriceBreakdown(batchId);
-            res.json({
+            return res.json(successResponse({
                 ...dbBatch,
-                priceBreakdown
-            });
-        } else {
-            // Fallback to blockchain
-            const batchDetails = await blockchain.getBatchDetails(batchId);
-            res.json(batchDetails);
+                priceBreakdown,
+                contractAddress: config.contractAddress,
+            }));
         }
-    } catch (error) {
-        console.error('Error fetching batch:', error);
-        res.status(500).json({ error: error.message });
+        const chainBatch = await blockchain.getBatchDetails(batchId);
+        res.json(successResponse({ ...chainBatch, contractAddress: config.contractAddress }));
+    } catch (err) {
+        next(err);
     }
 });
 
-// Get all batches
-router.get('/batches', async (req, res) => {
+router.get('/batches', async (req, res, next) => {
     try {
-        const batches = await dbHelpers.getAllBatches();
-
-        // Enrich with price breakdown for each
-        const enrichedBatches = await Promise.all(
-            batches.map(async (batch) => {
-                const priceBreakdown = await dbHelpers.getPriceBreakdown(batch.id);
-                return { ...batch, priceBreakdown };
-            })
-        );
-
-        res.json(enrichedBatches);
-    } catch (error) {
-        console.error('Error fetching batches:', error);
-        res.status(500).json({ error: error.message });
+        const { status } = req.query;
+        const rows = status
+            ? await dbHelpers.getBatchesByStatus(String(status))
+            : await dbHelpers.getAllBatches();
+        const enriched = await Promise.all(rows.map(async (b) => ({
+            ...b,
+            priceBreakdown: await dbHelpers.getPriceBreakdown(b.id),
+        })));
+        res.json(successResponse(enriched, { total: enriched.length }));
+    } catch (err) {
+        next(err);
     }
 });
 
-// Get batch count
-router.get('/stats/count', async (req, res) => {
+router.get('/stats/count', async (_req, res, next) => {
     try {
         const count = await blockchain.getBatchCount();
-        res.json({ batchCount: count });
-    } catch (error) {
-        console.error('Error fetching batch count:', error);
-        res.status(500).json({ error: error.message });
+        res.json(successResponse({ batchCount: count, contractAddress: config.contractAddress }));
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Admin overview
+router.get('/admin/overview', auth, requireRole('ADMIN'), async (_req, res, next) => {
+    try {
+        const [userCount, byStatus, volume, recent] = await Promise.all([
+            dbHelpers.countUsers(),
+            dbHelpers.countBatchesByStatus(),
+            dbHelpers.volumeByDay(30),
+            dbHelpers.recentPriceEvents(20),
+        ]);
+        res.json(successResponse({
+            users: userCount.n,
+            batchesByStatus: byStatus,
+            volumeByDay: volume,
+            recentActivity: recent,
+            contractAddress: config.contractAddress,
+        }));
+    } catch (err) {
+        next(err);
     }
 });
 

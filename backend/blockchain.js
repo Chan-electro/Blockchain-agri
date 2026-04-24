@@ -1,143 +1,92 @@
-const { ethers } = require('ethers');
-const fs = require('fs');
-const path = require('path');
+const {
+    provider,
+    getContractForRole,
+    getReadContract,
+    assertChainReady,
+} = require('./lib/wallets');
 
-// Read contract ABI
-const contractArtifactPath = path.join(__dirname, '../smart-contract/artifacts/contracts/AgriChain.sol/AgriChain.json');
-const contractArtifact = JSON.parse(fs.readFileSync(contractArtifactPath, 'utf8'));
-const contractABI = contractArtifact.abi;
+const STATUS_BY_INDEX = ['CREATED', 'PROCESSED', 'IN_TRANSIT', 'RETAIL', 'SOLD'];
 
-// Blockchain configuration
-const BLOCKCHAIN_URL = process.env.BLOCKCHAIN_URL || 'http://127.0.0.1:8545';
-const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
-
-// Initialize provider and signer
-const provider = new ethers.JsonRpcProvider(BLOCKCHAIN_URL);
-let signer;
-let contract;
-
-async function initializeBlockchain() {
-    try {
-        if (!CONTRACT_ADDRESS) {
-            console.warn('⚠️  CONTRACT_ADDRESS not set. Deploy contract first.');
-            return null;
-        }
-
-        if (PRIVATE_KEY) {
-            signer = new ethers.Wallet(PRIVATE_KEY, provider);
-        } else {
-            //Use first account from provider for development
-            signer = await provider.getSigner(0);
-        }
-
-        contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, signer);
-        console.log('✅ Connected to blockchain at', BLOCKCHAIN_URL);
-        console.log('📝 Contract address:', CONTRACT_ADDRESS);
-
-        return contract;
-    } catch (error) {
-        console.error('❌ Error initializing blockchain:', error.message);
-        return null;
-    }
+function toStatusName(value) {
+    const idx = typeof value === 'bigint' ? Number(value) : value;
+    return STATUS_BY_INDEX[idx] ?? String(value);
 }
 
-// Deploy contract function
-async function deployContract() {
-    try {
-        // Get signer from the first account
-        const deployerSigner = await provider.getSigner(0);
+async function createBatch({ role, crop, weight, location, basePrice }) {
+    const contract = getContractForRole(role);
+    const tx = await contract.createBatch(crop, weight, location, basePrice);
+    const receipt = await tx.wait();
 
-        const ContractFactory = new ethers.ContractFactory(contractABI, contractArtifact.bytecode, deployerSigner);
-        const deployedContract = await ContractFactory.deploy();
-        await deployedContract.waitForDeployment();
+    const event = receipt.logs
+        .map((log) => {
+            try { return contract.interface.parseLog(log); } catch { return null; }
+        })
+        .find((parsed) => parsed && parsed.name === 'BatchCreated');
 
-        const address = await deployedContract.getAddress();
-        console.log('✅ Contract deployed to:', address);
-        console.log('💡 Update your .env file with: CONTRACT_ADDRESS=' + address);
-
-        return address;
-    } catch (error) {
-        console.error('❌ Error deploying contract:', error);
-        throw error;
-    }
+    const batchId = event ? Number(event.args[0]) : null;
+    return {
+        txHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        batchId,
+    };
 }
 
-// Contract interaction functions
-const blockchain = {
-    // Create batch
-    createBatch: async (crop, weight, location, basePrice) => {
-        if (!contract) throw new Error('Contract not initialized');
-        const tx = await contract.createBatch(crop, weight, location, basePrice);
-        const receipt = await tx.wait();
+async function addProcessing({ batchId, fee, description }) {
+    const contract = getContractForRole('PROCESSOR');
+    const tx = await contract.addProcessingDetails(batchId, fee, description || 'Processing Fee');
+    const receipt = await tx.wait();
+    return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
+}
 
-        // Parse event to specifically find BatchCreated
-        const event = receipt.logs
-            .map(log => {
-                try {
-                    return contract.interface.parseLog(log);
-                } catch (e) {
-                    return null;
-                }
-            })
-            .find(parsedLog => parsedLog && parsedLog.name === 'BatchCreated');
+async function updateLogistics({ batchId, fee, description }) {
+    const contract = getContractForRole('LOGISTICS');
+    const tx = await contract.updateLogistics(batchId, fee, description || 'Transport Fee');
+    const receipt = await tx.wait();
+    return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
+}
 
-        const batchId = event ? Number(event.args[0]) : null;
-        return { receipt, batchId };
-    },
+async function retailerReceive({ batchId, markup, description }) {
+    const contract = getContractForRole('RETAILER');
+    const tx = await contract.retailerReceive(batchId, markup, description || 'Retail Markup');
+    const receipt = await tx.wait();
+    return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
+}
 
-    // Add processing details
-    addProcessing: async (batchId, fee, description) => {
-        if (!contract) throw new Error('Contract not initialized');
-        const tx = await contract.addProcessingDetails(batchId, fee, description);
-        const receipt = await tx.wait();
-        return receipt;
-    },
+async function getBatchDetails(batchId) {
+    const contract = getReadContract();
+    const details = await contract.getBatchDetails(batchId);
+    return {
+        id: Number(details[0]),
+        farmer: details[1],
+        crop: details[2],
+        weight: details[3],
+        location: details[4],
+        createdAt: Number(details[5]),
+        status: toStatusName(details[6]),
+        totalPrice: Number(details[7]),
+        priceBreakdown: details[8].map((c) => ({
+            stakeholder: c.stakeholder,
+            role: c.role,
+            amount: Number(c.amount),
+            description: c.description,
+            timestamp: Number(c.timestamp),
+        })),
+    };
+}
 
-    // Update logistics
-    updateLogistics: async (batchId, fee, description) => {
-        if (!contract) throw new Error('Contract not initialized');
-        const tx = await contract.updateLogistics(batchId, fee, description);
-        const receipt = await tx.wait();
-        return receipt;
-    },
+async function getBatchCount() {
+    const contract = getReadContract();
+    return Number(await contract.batchCount());
+}
 
-    // Retailer receive
-    retailerReceive: async (batchId, markup, description) => {
-        if (!contract) throw new Error('Contract not initialized');
-        const tx = await contract.retailerReceive(batchId, markup, description);
-        const receipt = await tx.wait();
-        return receipt;
-    },
-
-    // Get batch details
-    getBatchDetails: async (batchId) => {
-        if (!contract) throw new Error('Contract not initialized');
-        const details = await contract.getBatchDetails(batchId);
-        return {
-            id: Number(details[0]),
-            farmer: details[1],
-            crop: details[2],
-            weight: details[3],
-            location: details[4],
-            status: details[5],
-            totalPrice: Number(details[6]),
-            priceBreakdown: details[7].map(component => ({
-                stakeholder: component.stakeholder,
-                role: component.role,
-                amount: Number(component.amount),
-                description: component.description,
-                timestamp: Number(component.timestamp)
-            }))
-        };
-    },
-
-    // Get batch count
-    getBatchCount: async () => {
-        if (!contract) throw new Error('Contract not initialized');
-        const count = await contract.batchCount();
-        return Number(count);
-    }
+module.exports = {
+    provider,
+    assertChainReady,
+    createBatch,
+    addProcessing,
+    updateLogistics,
+    retailerReceive,
+    getBatchDetails,
+    getBatchCount,
+    toStatusName,
 };
-
-module.exports = { initializeBlockchain, deployContract, blockchain, provider, contractABI };
