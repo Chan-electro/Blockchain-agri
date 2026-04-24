@@ -1,0 +1,82 @@
+AgriChain - Project Presentation Notes
+=======================================
+
+1. Project Overview
+-------------------
+AgriChain is a blockchain-based supply chain management system designed to track agricultural products from farm to retail. It ensures transparency, traceability, and trust by recording critical lifecycle events (creation, transfer, quality checks, price updates) on an immutable ledger (Ethereum/Hardhat), while maintaining a fast and queryable state in a traditional database (SQLite).
+
+2. System Architecture
+----------------------
+The system operates on a Hybrid Architecture:
+[ Frontend ] <--> [ Backend API ] <--> [ SQLite Database (Off-chain Cache) ]
+                          ^
+                          | (Ethers.js)
+                          v
+                  [ Blockchain Node (Hardhat) ]
+
+- Frontend: A responsive web interface for users to interact with the system.
+- Backend: A Node.js/Express server that acts as a bridge. It handles API requests, manages blockchain transactions (for this demo), and listens for blockchain events.
+- Blockchain: The single source of truth for ownership and status. Hosted locally using Hardhat.
+- Database: An off-chain cache that replicates blockchain data for complex querying (e.g., "show me all batches history") which is expensive or difficult to do directly on-chain.
+
+3. Key Components & Code Logic
+------------------------------
+
+A. Blockchain (Smart Contract: `AgriChain.sol`)
+   - Technology: Solidity ^0.8.24
+   - Core Concepts:
+     - Roles: Uses `keccak256` hashing to define roles: FARMER, PROCESSOR, LOGISTICS, RETAILER, ADMIN.
+     - Structs:
+       - `Batch`: Defines the product (ID, creator, owner, status, weight, origin).
+       - `BatchStatus`: Enum tracking lifecycle (CREATED -> IN_TRANSIT -> PROCESSED -> SOLD).
+     - Events: Critical for backend sync. Emits `BatchCreated`, `BatchTransferred`, `PriceUpdated`, etc.
+   - Key Functions:
+     - `createBatch()`: Farmers mint a new batch.
+     - `transferBatch()`: Owners transfer custody and update status.
+     - `addPriceEvent()` / `addQualityCheck()`: Record metadata on-chain.
+
+B. Backend Server (`server.js`)
+   - Technology: Node.js, Express, Ethers.js
+   - Two Main Responsibilities:
+     1. API Layer: Receives HTTP requests from Frontend (e.g., POST /batches). It signs and sends transactions to the Blockchain using a server-managed wallet/signer.
+     2. Event Listener: A background process that watches the Blockchain for events (`contract.on(...)`). When an event occurs (e.g., BatchCreated), it captures the data and writes it to the SQLite database. This ensures the DB is always "eventually consistent" with the Chain.
+
+C. Database (`schema.sql`)
+   - Technology: SQLite
+   - Schema:
+     - `batches`: Mirrors the contract's Batch struct.
+     - `transfers`, `price_events`, `quality_checks`: Relational tables linked by `batch_id` to store history.
+     - `users`: Maps names/roles to blockchain addresses.
+
+D. Frontend (`app.js`)
+   - Technology: Vanilla JavaScript, HTML/CSS
+   - Logic: Simple Fetch API calls to the Backend. It does NOT connect to a wallet (like MetaMask) directly in this version. It relies on the Backend to handle the blockchain complexity, making it user-friendly for non-crypto natives.
+
+4. Execution Flow (The "Story")
+-------------------------------
+
+Phase 1: Setup
+   1. The `AgriChain` contract is deployed to the local Hardhat network.
+   2. The Contract Address is configured in the Backend.
+   3. The Backend server starts and begins listening for events.
+
+Phase 2: User Action (Creation)
+   1. User (Farmer) fills a form on the Frontend to create a "Wheat" batch.
+   2. Frontend sends `POST /batches` to Backend.
+   3. Backend receives request, creates a transaction calling `contract.createBatch(...)`.
+   4. Blockchain mines the transaction and emits a `BatchCreated` event.
+   5. Backend *Event Listener* detects the event and inserts the new batch into the SQLite `batches` table.
+   6. Frontend polls or refreshes and sees the new batch (served from SQLite).
+
+Phase 3: Transfer
+   1. User requests to transfer batch to "Logistics".
+   2. Backend executes `contract.transferBatch(...)`.
+   3. `BatchTransferred` event is emitted.
+   4. Database updates the `current_owner` and logs a row in `transfers` table.
+
+5. Why This Design?
+-------------------
+- Hybrid approach allows for the best of both worlds:
+- Security & Trust: From Blockchain.
+- Speed & Usability: From standard Web2 Backend/DB.
+- Scalability: Heavy queries hit the SQL DB, not the Blockchain node.
