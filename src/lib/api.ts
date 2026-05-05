@@ -19,7 +19,7 @@ interface EnvelopedError {
 
 type Envelope<T> = EnvelopedSuccess<T> | EnvelopedError;
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL !== undefined ? import.meta.env.VITE_API_BASE_URL : "http://localhost:3001";
 
 export function makeApiError(code: string, message: string, status: number): ApiError {
   const err = new Error(message) as ApiError;
