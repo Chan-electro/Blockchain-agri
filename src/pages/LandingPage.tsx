@@ -7,13 +7,14 @@ import { FeaturesGrid } from '../components/ui/features-grid';
 import { ProblemSolution } from '../components/ui/problem-solution';
 import { BlockchainExplainer } from '../components/ui/blockchain-explainer';
 import { Testimonials } from '../components/ui/testimonials';
+import { AboutUs } from '../components/ui/about-us';
 import { FaqAccordion } from '../components/ui/faq-accordion';
 import { CtaBanner } from '../components/ui/cta-banner';
 import { LandingFooter } from '../components/ui/landing-footer';
 
 const LandingPage = () => {
     return (
-        <div className="landing min-h-screen bg-background text-foreground overflow-x-hidden font-sans">
+        <div className="landing min-h-screen bg-background text-foreground overflow-x-hidden font-sans grid-pattern">
 
             {/* Hero */}
             <AgriChainHero />
@@ -40,8 +41,8 @@ const LandingPage = () => {
                     <span className="mb-4 inline-block rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary">
                         The Journey
                     </span>
-                    <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
-                        How It <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-green-400">Works</span>
+                    <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4 uppercase">
+                        How It <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">Works</span>
                     </h2>
                     <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
                         A seamless, transparent journey from the farm to your table — every handoff recorded immutably on the blockchain. Five stages, five stakeholders, one unbroken chain.
@@ -66,10 +67,10 @@ const LandingPage = () => {
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.15, type: 'spring', stiffness: 100 }}
                         >
-                            <div className="w-24 h-24 bg-card/80 backdrop-blur-sm border border-primary/20 rounded-2xl flex items-center justify-center text-primary text-3xl mb-6 shadow-xl group-hover:shadow-primary/20 group-hover:-translate-y-2 transition-all duration-300">
+                            <div className="w-24 h-24 bg-[#F8F9FA] backdrop-blur-sm border border-border/40 rounded-[2rem] flex items-center justify-center text-primary text-3xl mb-6 shadow-lg group-hover:shadow-2xl group-hover:-translate-y-2 transition-all duration-500">
                                 {step.icon}
                             </div>
-                            <h3 className="text-xl font-bold mb-2 tracking-tight">{step.title}</h3>
+                            <h3 className="text-xl font-black mb-2 tracking-tight uppercase">{step.title}</h3>
                             <p className="text-muted-foreground text-sm leading-relaxed">{step.desc}</p>
                         </motion.div>
                     ))}
@@ -80,7 +81,7 @@ const LandingPage = () => {
             <BlockchainExplainer />
 
             {/* Stakeholders */}
-            <section id="stakeholders" className="py-24 px-5 bg-muted/30 border-y border-border/50 relative overflow-hidden">
+            <section id="stakeholders" className="py-24 px-5 bg-[#F8F9FA] rounded-t-[2.5rem] md:rounded-t-[3.5rem] border-t border-border/30 relative overflow-hidden shadow-[0_-10px_40px_rgba(0,0,0,0.04)]">
                 <div className="absolute -right-64 top-20 w-96 h-96 bg-accent/10 blur-[120px] rounded-full pointer-events-none" />
                 <div className="absolute -left-64 bottom-20 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
 
@@ -94,8 +95,8 @@ const LandingPage = () => {
                         <span className="mb-4 inline-block rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-accent">
                             The Network
                         </span>
-                        <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
-                            Ecosystem <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-orange-400">Stakeholders</span>
+                        <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4 uppercase">
+                            Ecosystem <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-rose-400">Stakeholders</span>
                         </h2>
                         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
                             Join the network and play your part in building a trustworthy agricultural supply chain. Each role has a dedicated dashboard and cryptographically enforced permissions.
@@ -113,7 +114,8 @@ const LandingPage = () => {
                         ].map((item, index) => (
                             <motion.div
                                 key={index}
-                                className="bg-card/60 backdrop-blur-md border border-border/60 p-8 rounded-3xl text-center hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-2 group"
+                                className="bg-white/70 backdrop-blur-md border border-white/50 p-8 rounded-[2rem] text-center hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 group"
+                                style={{ boxShadow: '0 4px 30px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6)' }}
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
@@ -122,9 +124,9 @@ const LandingPage = () => {
                                 <div className="w-16 h-16 mx-auto bg-primary/10 rounded-2xl flex items-center justify-center text-3xl mb-6 text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
                                     {item.icon}
                                 </div>
-                                <h3 className="text-2xl font-bold mb-3 tracking-tight">{item.role}</h3>
+                                <h3 className="text-2xl font-black mb-3 tracking-tight uppercase">{item.role}</h3>
                                 <p className="text-muted-foreground mb-8 text-sm leading-relaxed">{item.desc}</p>
-                                <Link to="/register" className="inline-block px-6 py-2.5 rounded-xl border border-primary/30 text-primary font-semibold hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 shadow-sm">
+                                <Link to="/register" className="inline-block px-6 py-2.5 rounded-full border border-primary/30 text-primary font-bold text-sm uppercase tracking-wider hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 shadow-sm">
                                     Join as {item.role}
                                 </Link>
                             </motion.div>
@@ -132,6 +134,9 @@ const LandingPage = () => {
                     </div>
                 </div>
             </section>
+
+            {/* About Us */}
+            <AboutUs />
 
             {/* Testimonials */}
             <Testimonials />
@@ -147,7 +152,7 @@ const LandingPage = () => {
                     <span className="mb-4 inline-block rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary">
                         United Nations SDGs
                     </span>
-                    <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
+                    <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4 uppercase">
                         Our <span className="text-primary">Global Impact</span>
                     </h2>
                     <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -163,7 +168,7 @@ const LandingPage = () => {
                     ].map((item, i) => (
                         <motion.div
                             key={item.sdg}
-                            className="w-64 rounded-[2rem] flex flex-col items-center justify-center p-8 text-white font-bold shadow-2xl relative overflow-hidden group"
+                            className="w-64 rounded-[2rem] flex flex-col items-center justify-center p-8 text-white font-black shadow-2xl relative overflow-hidden group"
                             style={{ background: item.bg }}
                             whileHover={{ y: -10 }}
                             initial={{ opacity: 0, y: 20 }}
@@ -172,8 +177,8 @@ const LandingPage = () => {
                             transition={{ delay: i * 0.1 }}
                         >
                             <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <h3 className="text-3xl mb-3 font-extrabold">{item.sdg}</h3>
-                            <p className="text-sm font-semibold leading-snug opacity-90 mb-3">{item.label}</p>
+                            <h3 className="text-3xl mb-3 font-black uppercase">{item.sdg}</h3>
+                            <p className="text-sm font-bold leading-snug opacity-90 mb-3 uppercase">{item.label}</p>
                             <p className="text-xs leading-relaxed opacity-75">{item.detail}</p>
                         </motion.div>
                     ))}

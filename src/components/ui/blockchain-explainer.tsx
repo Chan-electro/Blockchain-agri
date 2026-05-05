@@ -41,7 +41,7 @@ export function BlockchainExplainer() {
           <span className="mb-4 inline-block rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-violet-500">
             Under The Hood
           </span>
-          <h2 className="text-4xl font-extrabold tracking-tight md:text-5xl">
+          <h2 className="text-4xl font-black tracking-tighter md:text-5xl uppercase">
             How{" "}
             <span className="bg-gradient-to-r from-violet-500 to-blue-400 bg-clip-text text-transparent">
               Blockchain

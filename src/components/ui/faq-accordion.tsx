@@ -41,9 +41,9 @@ export function FaqAccordion() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl font-extrabold tracking-tight md:text-5xl">
+          <h2 className="text-4xl font-black tracking-tighter md:text-5xl uppercase">
             Frequently Asked{" "}
-            <span className="bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
               Questions
             </span>
           </h2>
@@ -56,14 +56,14 @@ export function FaqAccordion() {
           {faqs.map((faq, i) => (
             <motion.div
               key={i}
-              className="overflow-hidden rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm"
+              className="overflow-hidden rounded-[2rem] border border-white/50 bg-white/70 backdrop-blur-md"
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.06 }}
             >
               <button
-                className="flex w-full items-center justify-between px-6 py-5 text-left text-sm font-semibold transition-colors hover:text-primary md:text-base"
+                className="flex w-full items-center justify-between px-6 py-5 text-left text-sm font-bold transition-colors hover:text-primary md:text-base"
                 onClick={() => setOpen(open === i ? null : i)}
               >
                 {faq.q}

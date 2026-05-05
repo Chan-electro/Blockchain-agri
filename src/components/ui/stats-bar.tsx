@@ -42,11 +42,11 @@ function StatItem({ stat }: { stat: Stat }) {
 
   return (
     <div ref={ref} className="flex flex-col items-center gap-1 px-6 py-6">
-      <span className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
+      <span className="text-3xl font-black tracking-tighter text-foreground md:text-4xl">
         {count.toLocaleString()}
         <span className="text-primary">{stat.suffix}</span>
       </span>
-      <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground md:text-sm">
+      <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground md:text-xs">
         {stat.label}
       </span>
     </div>

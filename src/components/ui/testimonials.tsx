@@ -6,7 +6,7 @@ const testimonials = [
     name: "Ramesh Patel",
     role: "Organic Wheat Farmer, Madhya Pradesh",
     initials: "RP",
-    color: "from-emerald-500 to-green-600",
+    color: "from-indigo-500 to-blue-600",
   },
   {
     quote: "I used to worry whether the cold-chain was actually maintained. With AgriChain's timestamped logistics logs I can see exactly when and where the temperature threshold was checked — no guesswork.",
@@ -39,7 +39,7 @@ export function Testimonials() {
           <span className="mb-4 inline-block rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-accent">
             Trusted By The Chain
           </span>
-          <h2 className="text-4xl font-extrabold tracking-tight md:text-5xl">
+          <h2 className="text-4xl font-black tracking-tighter md:text-5xl uppercase">
             Voices From{" "}
             <span className="bg-gradient-to-r from-accent to-orange-400 bg-clip-text text-transparent">
               The Field
@@ -54,7 +54,8 @@ export function Testimonials() {
           {testimonials.map((t, i) => (
             <motion.div
               key={t.name}
-              className="flex flex-col justify-between rounded-3xl border border-border/60 bg-card/70 p-8 backdrop-blur-sm"
+              className="flex flex-col justify-between rounded-[2rem] border border-white/50 bg-white/70 backdrop-blur-md p-8 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
+              style={{ boxShadow: '0 4px 30px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6)' }}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -68,7 +69,7 @@ export function Testimonials() {
                   {t.initials}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold">{t.name}</p>
+                  <p className="text-sm font-black">{t.name}</p>
                   <p className="text-xs text-muted-foreground">{t.role}</p>
                 </div>
               </div>

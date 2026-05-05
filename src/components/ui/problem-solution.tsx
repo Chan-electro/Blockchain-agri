@@ -27,9 +27,9 @@ export function ProblemSolution() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl font-extrabold tracking-tight md:text-5xl">
+          <h2 className="text-4xl font-black tracking-tighter md:text-5xl uppercase">
             The Problem.{" "}
-            <span className="bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
               Our Answer.
             </span>
           </h2>
@@ -41,13 +41,13 @@ export function ProblemSolution() {
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           <motion.div
-            className="rounded-3xl border border-destructive/20 bg-destructive/5 p-8"
+            className="rounded-[2rem] border border-destructive/20 bg-destructive/5 p-8"
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h3 className="mb-6 text-xl font-bold text-destructive">
+            <h3 className="mb-6 text-xl font-black text-destructive uppercase">
               Traditional Supply Chain
             </h3>
             <ul className="space-y-4">
@@ -70,13 +70,13 @@ export function ProblemSolution() {
           </motion.div>
 
           <motion.div
-            className="rounded-3xl border border-primary/20 bg-primary/5 p-8"
+            className="rounded-[2rem] border border-primary/20 bg-primary/5 p-8"
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h3 className="mb-6 text-xl font-bold text-primary">
+            <h3 className="mb-6 text-xl font-black text-primary uppercase">
               AgriChain on Blockchain
             </h3>
             <ul className="space-y-4">

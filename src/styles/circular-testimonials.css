@@ -1,0 +1,64 @@
+/* Circular Testimonials Styles */
+.ct-container {
+  width: 100%;
+  max-width: 56rem;
+  padding: 2rem;
+}
+.ct-grid {
+  display: grid;
+  gap: 5rem;
+}
+.ct-image-container {
+  position: relative;
+  width: 100%;
+  height: 24rem;
+  perspective: 1000px;
+}
+.ct-image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+.ct-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.ct-name {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+.ct-designation {
+  margin-bottom: 2rem;
+}
+.ct-quote {
+  line-height: 1.75;
+}
+.ct-arrow-buttons {
+  display: flex;
+  gap: 1.5rem;
+  padding-top: 3rem;
+}
+.ct-arrow-button {
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border: none;
+}
+
+@media (min-width: 768px) {
+  .ct-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .ct-arrow-buttons {
+    padding-top: 0;
+  }
+}

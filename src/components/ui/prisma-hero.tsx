@@ -110,8 +110,30 @@ const AgriChainHero = () => {
         />
         {/* Noise overlay */}
         <div className="noise-overlay pointer-events-none absolute inset-0 opacity-[0.7] mix-blend-overlay" />
-        {/* Gradient — fades fully to black at the bottom transition zone */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent via-60% to-black" />
+        {/*
+          Multi-stop gradient:
+          - Top 30%: dark overlay for readability
+          - 30-60%: fades to transparent (video shows)
+          - 60-82%: builds back to dark for text readability
+          - 82-100%: transitions from dark to white for seamless page transition
+        */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: `linear-gradient(
+              to bottom,
+              rgba(0,0,0,0.35) 0%,
+              rgba(0,0,0,0.10) 30%,
+              transparent 45%,
+              rgba(0,0,0,0.15) 58%,
+              rgba(0,0,0,0.55) 72%,
+              rgba(0,0,0,0.70) 82%,
+              rgba(0,0,0,0.50) 90%,
+              rgba(255,255,255,0.60) 95%,
+              rgba(255,255,255,1) 100%
+            )`,
+          }}
+        />
       </div>
 
       {/* Navbar */}
@@ -148,7 +170,7 @@ const AgriChainHero = () => {
       {/* Hero content — anchored to 100vh mark so it stays in the visible viewport */}
       <div
         className="absolute left-0 right-0 z-10 px-4 sm:px-6 md:px-10"
-        style={{ bottom: "10vh" }}
+        style={{ bottom: "18vh" }}
       >
         <div className="grid grid-cols-12 items-end gap-4">
 
@@ -183,7 +205,7 @@ const AgriChainHero = () => {
             >
               <Link
                 to="/select-role"
-                className="group relative inline-flex items-center gap-2 self-start overflow-hidden rounded-xl border border-emerald-400/40 bg-emerald-500/20 px-6 py-3 text-sm font-semibold backdrop-blur-sm transition-all duration-300 hover:border-emerald-400/70 hover:bg-emerald-500/30 hover:shadow-[0_0_24px_rgba(52,211,153,0.3)] sm:text-base"
+                className="group relative inline-flex items-center gap-2 self-start overflow-hidden rounded-xl border border-indigo-400/40 bg-indigo-500/20 px-6 py-3 text-sm font-semibold backdrop-blur-sm transition-all duration-300 hover:border-indigo-400/70 hover:bg-indigo-500/30 hover:shadow-[0_0_24px_rgba(67,97,238,0.3)] sm:text-base"
                 style={{ color: "#E1E0CC" }}
               >
                 Trace Your Food
@@ -212,7 +234,7 @@ const AgriChainHero = () => {
                   className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/30 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide backdrop-blur-sm sm:text-xs"
                   style={{ color: "rgba(225, 224, 204, 0.7)" }}
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
                   {tag}
                 </span>
               ))}
