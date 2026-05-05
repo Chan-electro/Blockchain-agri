@@ -1,78 +1,84 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import DashboardLayout from '../components/DashboardLayout';
-import { Button } from '@/components/ui/button';
-import { Scan } from 'lucide-react';
+import { useMemo, useState } from "react";
+import { Routes, Route } from "react-router-dom";
+import { QrCode, ShoppingBag, Truck } from "lucide-react";
 
-const RetailerDashboard = () => {
-    const [inventory, setInventory] = useState([
-        { id: 'PROD-101', name: 'Premium Basmati Rice', batchId: 'BATCH-001', price: 120, stock: '50kg', status: 'ON_SHELF' },
-        { id: 'PROD-102', name: 'Organic Wheat Flour', batchId: 'BATCH-002', price: 45, stock: '200kg', status: 'WAREHOUSE' },
-    ]);
+import { DashboardShell } from "@/components/layout/DashboardShell";
+import { StatCard } from "@/components/batches/StatCard";
+import { BatchTable } from "@/components/batches/BatchTable";
+import { BatchDetailsSheet } from "@/components/batches/BatchDetailsSheet";
+import { BatchActionDialog } from "@/components/batches/BatchActionDialog";
+import { QRPublishDialog } from "@/components/batches/QRPublishDialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { useBatches } from "@/hooks/useBatches";
+import type { Batch } from "@/lib/api";
+import SettingsPage from "./SettingsPage";
+import AllBatchesPage from "./AllBatchesPage";
 
-    const handleUpdatePrice = (id: string) => {
-        const newPrice = prompt("Enter new price per kg:");
-        if (newPrice) {
-            setInventory(inventory.map(item => item.id === id ? { ...item, price: Number(newPrice) } : item));
-        }
-    };
+function Overview() {
+  const { data: allBatches, isLoading } = useBatches();
+  const [selected, setSelected] = useState<Batch | null>(null);
+  const [receiving, setReceiving] = useState<Batch | null>(null);
+  const [qrBatch, setQrBatch] = useState<Batch | null>(null);
 
-    return (
-        <DashboardLayout role="retailer" title="Retailer Dashboard">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
-                    <span className="text-muted-foreground text-sm font-medium">Total Inventory</span>
-                    <div className="text-3xl font-bold mt-2">250kg</div>
-                </div>
-                <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
-                    <span className="text-muted-foreground text-sm font-medium">Sales Today</span>
-                    <div className="text-3xl font-bold mt-2">$1,200</div>
-                </div>
-                <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
-                    <span className="text-muted-foreground text-sm font-medium">Low Stock Alerts</span>
-                    <div className="text-3xl font-bold mt-2 text-yellow-500">2</div>
-                </div>
-            </div>
+  const incoming = useMemo(() => (allBatches ?? []).filter((b) => b.status === "IN_TRANSIT"), [allBatches]);
+  const inStock = useMemo(() => (allBatches ?? []).filter((b) => b.status === "RETAIL"), [allBatches]);
+  const shelfValue = inStock.reduce((n, b) => n + b.total_price, 0);
 
-            <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-                <h2 className="text-xl font-semibold mb-6 pb-4 border-b border-border">Store Inventory</h2>
-                <div className="space-y-4">
-                    {inventory.map((item) => (
-                        <motion.div
-                            key={item.id}
-                            className="bg-background border border-border rounded-lg p-4 flex flex-col md:flex-row justify-between items-center gap-4 hover:border-primary transition-colors"
-                            whileHover={{ scale: 1.01 }}
-                        >
-                            <div className="flex-1">
-                                <h4 className="font-semibold text-lg">{item.name}</h4>
-                                <div className="flex gap-4 text-sm text-muted-foreground mt-1">
-                                    <span>ID: {item.id}</span>
-                                    <span>Batch: {item.batchId}</span>
-                                    <span>Stock: {item.stock}</span>
-                                </div>
-                            </div>
+  return (
+    <DashboardShell title="Retailer workspace" subtitle="Receive shipments and publish QR codes">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="Incoming" value={incoming.length} icon={Truck} />
+        <StatCard label="In stock" value={inStock.length} icon={ShoppingBag} />
+        <StatCard label="Shelf value" value={`₹${shelfValue}`} icon={QrCode} />
+      </div>
 
-                            <div className="flex items-center gap-6">
-                                <div className="text-right">
-                                    <div className="text-2xl font-bold text-primary">${item.price}</div>
-                                    <div className="text-xs text-muted-foreground">per kg</div>
-                                </div>
+      <Tabs defaultValue="incoming" className="mt-6">
+        <TabsList>
+          <TabsTrigger value="incoming">Incoming ({incoming.length})</TabsTrigger>
+          <TabsTrigger value="stock">In stock ({inStock.length})</TabsTrigger>
+        </TabsList>
+        <TabsContent value="incoming">
+          <BatchTable
+            batches={incoming}
+            loading={isLoading}
+            emptyTitle="Nothing incoming"
+            emptyDescription="Batches marked IN_TRANSIT will show up here."
+            onRowClick={setSelected}
+            rowAction={(b) => (
+              <Button size="sm" onClick={(e) => { e.stopPropagation(); setReceiving(b); }}>Receive</Button>
+            )}
+          />
+        </TabsContent>
+        <TabsContent value="stock">
+          <BatchTable
+            batches={inStock}
+            loading={isLoading}
+            emptyTitle="No products on shelf"
+            emptyDescription="Receive an incoming batch to put it on the shelf."
+            onRowClick={setSelected}
+            rowAction={(b) => (
+              <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setQrBatch(b); }}>
+                <QrCode className="mr-2 size-4" /> QR
+              </Button>
+            )}
+          />
+        </TabsContent>
+      </Tabs>
 
-                                <div className="flex gap-2">
-                                    <Button variant="outline" size="sm" onClick={() => handleUpdatePrice(item.id)}>
-                                        Update Price
-                                    </Button>
-                                    <Button size="sm" className="gap-2">
-                                        <Scan size={16} /> View as Consumer
-                                    </Button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-            </div>
-        </DashboardLayout>
-    );
-};
+      <BatchDetailsSheet batch={selected} onOpenChange={(o) => !o && setSelected(null)} />
+      <BatchActionDialog action="receive" batch={receiving} onOpenChange={(o) => !o && setReceiving(null)} />
+      <QRPublishDialog batch={qrBatch} onOpenChange={(o) => !o && setQrBatch(null)} />
+    </DashboardShell>
+  );
+}
 
-export default RetailerDashboard;
+export default function RetailerDashboard() {
+  return (
+    <Routes>
+      <Route index element={<Overview />} />
+      <Route path="batches" element={<AllBatchesPage />} />
+      <Route path="settings" element={<SettingsPage />} />
+    </Routes>
+  );
+}

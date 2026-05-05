@@ -1,9 +1,15 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Sphere, Line, Html } from '@react-three/drei';
 import * as THREE from 'three';
 
-const Node = ({ position, color, label }) => {
+interface NodeProps {
+    position: [number, number, number];
+    color: string;
+    label: string;
+}
+
+const Node = ({ position, color, label }: NodeProps) => {
     return (
         <group position={position}>
             <Sphere args={[0.3, 32, 32]}>
@@ -18,7 +24,12 @@ const Node = ({ position, color, label }) => {
     );
 };
 
-const Connection = ({ start, end }) => {
+interface ConnectionProps {
+    start: THREE.Vector3;
+    end: THREE.Vector3;
+}
+
+const Connection = ({ start, end }: ConnectionProps) => {
     const points = [start, end];
     return (
         <Line points={points} color="white" lineWidth={1} transparent opacity={0.3} />
@@ -26,7 +37,7 @@ const Connection = ({ start, end }) => {
 };
 
 const SceneContent = () => {
-    const groupRef = useRef();
+    const groupRef = useRef<THREE.Group>(null);
 
     useFrame((state) => {
         const t = state.clock.getElapsedTime();
@@ -35,7 +46,7 @@ const SceneContent = () => {
         }
     });
 
-    const nodes = [
+    const nodes: Array<{ pos: [number, number, number]; label: string; color: string }> = [
         { pos: [-4, 0, 0], label: 'Farm', color: '#4ade80' },
         { pos: [-1.5, 1, 0], label: 'Processing', color: '#facc15' },
         { pos: [1.5, -0.5, 0], label: 'Logistics', color: '#60a5fa' },
