@@ -19,7 +19,7 @@ const solutions = [
 
 export function ProblemSolution() {
   return (
-    <section className="relative overflow-hidden py-24 px-5 bg-muted/20">
+    <section className="relative overflow-hidden py-16 md:py-24 px-4 md:px-5 bg-muted/20">
       <div className="mx-auto max-w-7xl">
         <motion.div
           className="mb-16 text-center"
@@ -27,27 +27,27 @@ export function ProblemSolution() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl font-extrabold tracking-tight md:text-5xl">
+          <h2 className="text-3xl font-black tracking-tighter md:text-5xl uppercase">
             The Problem.{" "}
-            <span className="bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
               Our Answer.
             </span>
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+          <p className="mx-auto mt-3 md:mt-4 max-w-2xl text-sm md:text-lg text-muted-foreground">
             Traditional agricultural supply chains are opaque, fragmented, and ripe for fraud.
             AgriChain replaces every paper trail with an on-chain audit trail.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 md:gap-8 md:grid-cols-2">
           <motion.div
-            className="rounded-3xl border border-destructive/20 bg-destructive/5 p-8"
+            className="rounded-[1.5rem] md:rounded-[2rem] border border-destructive/20 bg-destructive/5 p-6 md:p-8"
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h3 className="mb-6 text-xl font-bold text-destructive">
+            <h3 className="mb-4 md:mb-6 text-lg md:text-xl font-black text-destructive uppercase">
               Traditional Supply Chain
             </h3>
             <ul className="space-y-4">
@@ -70,13 +70,13 @@ export function ProblemSolution() {
           </motion.div>
 
           <motion.div
-            className="rounded-3xl border border-primary/20 bg-primary/5 p-8"
+            className="rounded-[1.5rem] md:rounded-[2rem] border border-primary/20 bg-primary/5 p-6 md:p-8"
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h3 className="mb-6 text-xl font-bold text-primary">
+            <h3 className="mb-4 md:mb-6 text-lg md:text-xl font-black text-primary uppercase">
               AgriChain on Blockchain
             </h3>
             <ul className="space-y-4">

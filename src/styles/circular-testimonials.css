@@ -1,0 +1,91 @@
+/* Circular Testimonials Styles */
+.ct-container {
+  width: 100%;
+  max-width: 56rem;
+  padding: 1rem;
+}
+.ct-grid {
+  display: grid;
+  gap: 2rem;
+}
+.ct-image-container {
+  position: relative;
+  width: 100%;
+  height: 16rem;
+  perspective: 1000px;
+}
+.ct-image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+.ct-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.ct-name {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+  font-size: 1.25rem !important;
+}
+.ct-designation {
+  margin-bottom: 1rem;
+  font-size: 0.8rem !important;
+}
+.ct-quote {
+  line-height: 1.6;
+  font-size: 0.875rem !important;
+}
+.ct-arrow-buttons {
+  display: flex;
+  gap: 1rem;
+  padding-top: 1.5rem;
+}
+.ct-arrow-button {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border: none;
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  .ct-container {
+    padding: 2rem;
+  }
+  .ct-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+  }
+  .ct-image-container {
+    height: 24rem;
+  }
+  .ct-name {
+    font-size: 1.5rem !important;
+  }
+  .ct-designation {
+    margin-bottom: 2rem;
+    font-size: 0.925rem !important;
+  }
+  .ct-quote {
+    line-height: 1.75;
+    font-size: 1.125rem !important;
+  }
+  .ct-arrow-buttons {
+    padding-top: 0;
+    gap: 1.5rem;
+  }
+  .ct-arrow-button {
+    width: 2.7rem;
+    height: 2.7rem;
+  }
+}
