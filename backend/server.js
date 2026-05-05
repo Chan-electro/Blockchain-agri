@@ -13,7 +13,7 @@ const authRoutes = require('./routes/auth');
 const app = express();
 
 app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(cors({ origin: config.frontendUrl, credentials: false }));
+app.use(cors());
 app.use(express.json({ limit: '200kb' }));
 app.use(pinoHttp({ logger, autoLogging: { ignore: (req) => req.url === '/health' } }));
 

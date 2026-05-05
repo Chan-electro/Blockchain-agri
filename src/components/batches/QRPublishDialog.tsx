@@ -14,7 +14,8 @@ interface QRPublishDialogProps {
 
 export function QRPublishDialog({ batch, onOpenChange }: QRPublishDialogProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const productUrl = batch ? `${window.location.origin}/product/${batch.id}` : "";
+  const baseUrl = import.meta.env.VITE_PUBLIC_URL || window.location.origin;
+  const productUrl = batch ? `${baseUrl}/product/${batch.id}` : "";
 
   function download() {
     const svg = wrapperRef.current?.querySelector("svg");

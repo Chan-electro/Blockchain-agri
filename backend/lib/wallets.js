@@ -27,8 +27,9 @@ function getSignerByIndex(walletIndex) {
     if (signerCache.has(walletIndex)) return signerCache.get(walletIndex);
     const hdPath = `m/44'/60'/0'/0/${walletIndex}`;
     const wallet = ethers.HDNodeWallet.fromPhrase(config.mnemonic, undefined, hdPath).connect(provider);
-    signerCache.set(walletIndex, wallet);
-    return wallet;
+    const nonceManagedWallet = new ethers.NonceManager(wallet);
+    signerCache.set(walletIndex, nonceManagedWallet);
+    return nonceManagedWallet;
 }
 
 function getSignerForRole(role) {
@@ -41,11 +42,7 @@ function getContractForSigner(signer) {
     if (!config.contractAddress) {
         throw new Error('CONTRACT_ADDRESS not set. Run the deploy script first.');
     }
-    const cacheKey = signer.address;
-    if (contractCache.has(cacheKey)) return contractCache.get(cacheKey);
-    const contract = new ethers.Contract(config.contractAddress, contractAbi, signer);
-    contractCache.set(cacheKey, contract);
-    return contract;
+    return new ethers.Contract(config.contractAddress, contractAbi, signer);
 }
 
 function getContractForRole(role) {
