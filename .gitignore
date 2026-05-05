@@ -50,3 +50,13 @@ smart-contract/typechain-types/
 
 # Claude Code local settings and permission cache
 .claude/
+
+# Project documents and reports
+*.pdf
+*.docx
+*.pptx
+_docs/
+DISCREPANCIES_REPORT.txt
+AgriChain_Project_Documentation_Report.txt
+Project_Presentation_Notes.txt
+.mcp.json
