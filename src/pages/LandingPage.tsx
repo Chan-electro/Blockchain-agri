@@ -13,7 +13,7 @@ import { LandingFooter } from '../components/ui/landing-footer';
 
 const LandingPage = () => {
     return (
-        <div className="min-h-screen bg-background text-foreground overflow-x-hidden font-sans">
+        <div className="landing min-h-screen bg-background text-foreground overflow-x-hidden font-sans">
 
             {/* Hero */}
             <AgriChainHero />
