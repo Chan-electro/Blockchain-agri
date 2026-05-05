@@ -121,13 +121,13 @@ const items: BentoItem[] = [
 
 export function FeaturesGrid() {
   return (
-    <section className="relative overflow-hidden py-24 px-5">
+    <section className="relative overflow-hidden py-16 md:py-24 px-4 md:px-5">
       <div className="pointer-events-none absolute -left-32 top-20 h-96 w-96 rounded-full bg-indigo-500/5 blur-[120px]" />
       <div className="pointer-events-none absolute -right-32 bottom-20 h-96 w-96 rounded-full bg-violet-500/5 blur-[120px]" />
 
       <div className="relative z-10 mx-auto max-w-7xl">
         <motion.div
-          className="mb-16 text-center"
+          className="mb-10 md:mb-16 text-center"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -143,7 +143,7 @@ export function FeaturesGrid() {
             Platform Capabilities
           </span>
           <h2
-            className="text-4xl font-black tracking-tighter md:text-5xl text-foreground uppercase"
+            className="text-3xl font-black tracking-tighter md:text-5xl text-foreground uppercase"
           >
             Why{" "}
             <span style={{ background: "linear-gradient(90deg, #4361EE, #818CF8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
@@ -151,21 +151,21 @@ export function FeaturesGrid() {
             </span>
           </h2>
           <p
-            className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground"
+            className="mx-auto mt-3 md:mt-4 max-w-2xl text-sm md:text-lg text-muted-foreground"
           >
             Built on Ethereum, designed for real agricultural workflows. Six core capabilities that set AgriChain apart.
           </p>
         </motion.div>
 
         {/* Glassmorphic Bento grid */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:gap-4 md:grid-cols-3">
           {items.map((item, i) => {
             const Icon = item.icon;
             return (
             <motion.div
               key={item.title}
               className={cn(
-                "group relative overflow-hidden rounded-3xl border p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl",
+                "group relative overflow-hidden rounded-[1.5rem] md:rounded-3xl border p-5 md:p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl",
                 item.span
               )}
               style={{
@@ -190,12 +190,12 @@ export function FeaturesGrid() {
               </div>
 
               <h3
-                className="mb-2 text-lg font-bold tracking-tight text-foreground"
+                className="mb-1 md:mb-2 text-base md:text-lg font-bold tracking-tight text-foreground"
               >
                 {item.title}
               </h3>
               <p
-                className="text-sm leading-relaxed text-muted-foreground"
+                className="text-xs md:text-sm leading-relaxed text-muted-foreground"
               >
                 {item.desc}
               </p>

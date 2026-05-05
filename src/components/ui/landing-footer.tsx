@@ -23,10 +23,10 @@ const footerLinks: Record<string, { label: string; href: string }[]> = {
 
 export function LandingFooter() {
   return (
-    <footer className="border-t border-border bg-[#F8F9FA] rounded-t-[2.5rem] px-5 pt-16 pb-8 shadow-[0_-10px_40px_rgba(0,0,0,0.04)]">
+    <footer className="border-t border-border bg-[#F8F9FA] rounded-t-[2rem] md:rounded-t-[2.5rem] px-4 md:px-5 pt-10 md:pt-16 pb-6 md:pb-8 shadow-[0_-10px_40px_rgba(0,0,0,0.04)]">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-12 grid grid-cols-1 gap-10 md:grid-cols-4">
-          <div className="md:col-span-1">
+        <div className="mb-8 md:mb-12 grid grid-cols-2 gap-6 md:gap-10 md:grid-cols-4">
+          <div className="col-span-2 md:col-span-1">
             <Link to="/" className="mb-4 flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
                 <Leaf className="h-5 w-5 text-primary" />

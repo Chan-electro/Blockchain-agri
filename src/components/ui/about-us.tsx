@@ -28,7 +28,7 @@ const teamMembers = [
 
 export function AboutUs() {
   return (
-    <section id="about-us" className="relative overflow-hidden py-24 px-5">
+    <section id="about-us" className="relative overflow-hidden py-16 md:py-24 px-4 md:px-5">
       {/* Decorative blurs */}
       <div className="pointer-events-none absolute -right-32 top-20 h-96 w-96 rounded-full bg-indigo-500/5 blur-[120px]" />
       <div className="pointer-events-none absolute -left-32 bottom-20 h-96 w-96 rounded-full bg-coral-500/5 blur-[120px]" />
@@ -43,13 +43,13 @@ export function AboutUs() {
           <span className="mb-4 inline-block rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-accent">
             The Team
           </span>
-          <h2 className="text-4xl font-black tracking-tighter md:text-5xl uppercase">
+          <h2 className="text-3xl font-black tracking-tighter md:text-5xl uppercase">
             Meet the{" "}
             <span className="bg-gradient-to-r from-accent to-orange-400 bg-clip-text text-transparent">
               Builders
             </span>
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+          <p className="mx-auto mt-3 md:mt-4 max-w-2xl text-sm md:text-lg text-muted-foreground">
             The minds behind AgriChain — a passionate team of engineers and designers
             building blockchain-powered agricultural transparency.
           </p>

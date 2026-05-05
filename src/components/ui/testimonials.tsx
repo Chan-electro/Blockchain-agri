@@ -26,7 +26,7 @@ const testimonials = [
 
 export function Testimonials() {
   return (
-    <section className="relative overflow-hidden py-24 px-5 bg-muted/20">
+    <section className="relative overflow-hidden py-16 md:py-24 px-4 md:px-5 bg-muted/20">
       <div className="pointer-events-none absolute -left-20 top-1/2 h-80 w-80 -translate-y-1/2 rounded-full bg-primary/5 blur-[100px]" />
 
       <div className="relative z-10 mx-auto max-w-7xl">
@@ -39,29 +39,29 @@ export function Testimonials() {
           <span className="mb-4 inline-block rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-accent">
             Trusted By The Chain
           </span>
-          <h2 className="text-4xl font-black tracking-tighter md:text-5xl uppercase">
+          <h2 className="text-3xl font-black tracking-tighter md:text-5xl uppercase">
             Voices From{" "}
             <span className="bg-gradient-to-r from-accent to-orange-400 bg-clip-text text-transparent">
               The Field
             </span>
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+          <p className="mx-auto mt-3 md:mt-4 max-w-2xl text-sm md:text-lg text-muted-foreground">
             Farmers, processors, and consumers across the chain share how AgriChain has changed their working lives.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 md:gap-8 md:grid-cols-3">
           {testimonials.map((t, i) => (
             <motion.div
               key={t.name}
-              className="flex flex-col justify-between rounded-[2rem] border border-white/50 bg-white/70 backdrop-blur-md p-8 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
+              className="flex flex-col justify-between rounded-[1.5rem] md:rounded-[2rem] border border-white/50 bg-white/70 backdrop-blur-md p-6 md:p-8 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
               style={{ boxShadow: '0 4px 30px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6)' }}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.12 }}
             >
-              <p className="mb-8 text-sm leading-relaxed text-muted-foreground">
+              <p className="mb-6 md:mb-8 text-xs md:text-sm leading-relaxed text-muted-foreground">
                 &ldquo;{t.quote}&rdquo;
               </p>
               <div className="flex items-center gap-4">
