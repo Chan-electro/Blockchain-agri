@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUpDown, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Input } from "@/components/ui/input";
@@ -67,9 +67,7 @@ export function BatchTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>
-                <span className="inline-flex items-center gap-1">ID <ArrowUpDown className="size-3" /></span>
-              </TableHead>
+              <TableHead>ID</TableHead>
               <TableHead>Crop</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Status</TableHead>

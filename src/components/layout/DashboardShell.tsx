@@ -1,5 +1,5 @@
 import { type ReactNode, useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import {
   LayoutDashboard, Package, Settings, LogOut, Sprout, Factory, Truck, Store,
   ShieldCheck, Menu, X,
@@ -59,8 +59,6 @@ interface DashboardShellProps {
 export function DashboardShell({ title, subtitle, actions, children }: DashboardShellProps) {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const location = useLocation();
-
   if (!user) return null;
   const nav = navItemsForRole(user.role);
   const RoleIcon = ROLE_ICON[user.role];
@@ -70,7 +68,7 @@ export function DashboardShell({ title, subtitle, actions, children }: Dashboard
     <div className="flex min-h-screen bg-muted/30">
       {/* Sidebar desktop */}
       <aside className="hidden w-64 shrink-0 border-r bg-background md:flex md:flex-col">
-        <SidebarInner role={user.role} nav={nav} pathname={location.pathname} />
+        <SidebarInner role={user.role} nav={nav} />
       </aside>
 
       {/* Sidebar mobile */}
@@ -84,7 +82,7 @@ export function DashboardShell({ title, subtitle, actions, children }: Dashboard
                 <X className="size-4" />
               </Button>
             </div>
-            <SidebarInner role={user.role} nav={nav} pathname={location.pathname} />
+            <SidebarInner role={user.role} nav={nav} />
           </aside>
         </div>
       )}
@@ -153,10 +151,9 @@ export function DashboardShell({ title, subtitle, actions, children }: Dashboard
 interface SidebarInnerProps {
   role: Role;
   nav: NavItem[];
-  pathname: string;
 }
 
-function SidebarInner({ role, nav, pathname }: SidebarInnerProps) {
+function SidebarInner({ role, nav }: SidebarInnerProps) {
   const RoleIcon = ROLE_ICON[role];
   return (
     <div className="flex h-full flex-col">
@@ -181,8 +178,6 @@ function SidebarInner({ role, nav, pathname }: SidebarInnerProps) {
       </div>
       <nav className="flex flex-1 flex-col gap-1 px-3">
         {nav.map((item) => {
-          const active = pathname === item.to || (item.to !== "/" && pathname.startsWith(item.to) && item.to.endsWith(item.to.split("/").pop()!) && item.to === pathname);
-          const isActive = pathname === item.to;
           const Icon = item.icon;
           return (
             <NavLink
@@ -192,7 +187,7 @@ function SidebarInner({ role, nav, pathname }: SidebarInnerProps) {
               className={({ isActive: navActive }) =>
                 cn(
                   "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition",
-                  (navActive || isActive || active)
+                  navActive
                     ? "bg-primary/10 font-medium text-primary"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )
