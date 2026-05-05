@@ -65,7 +65,6 @@ async function main() {
     upsertEnvValue(backendEnvPath, "BLOCKCHAIN_URL", "http://127.0.0.1:8545");
     upsertEnvValue(backendEnvPath, "MNEMONIC", HARDHAT_MNEMONIC);
 
-    upsertEnvValue(rootEnvPath, "VITE_API_BASE_URL", "http://localhost:3001");
     upsertEnvValue(rootEnvPath, "VITE_CHAIN_NAME", "Hardhat #31337");
     upsertEnvValue(rootEnvPath, "VITE_CONTRACT_ADDRESS", contractAddress);
 
