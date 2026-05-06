@@ -5,24 +5,24 @@ import "../../styles/circular-testimonials.css";
 const teamMembers = [
   {
     quote:
-      "I led the architecture of AgriChain — from designing the Solidity smart contracts on Ethereum to building the React frontend. My goal was to create a seamless, transparent supply chain that empowers every stakeholder from farmer to consumer.",
+      "I architected AgriChain end-to-end — from writing Solidity smart contracts and designing the Ethereum integration layer to building the React frontend and crafting every visual detail of the UI. Bridging full-stack engineering with design thinking was the key to making a complex blockchain system feel intuitive and polished.",
     name: "Chandan B Krishna",
-    designation: "Full-Stack Developer & Project Lead",
-    src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1368&auto=format&fit=crop&ixlib=rb-4.0.3",
+    designation: "Full-Stack Engineer & Designer",
+    src: "/team/chandan.png",
   },
   {
     quote:
-      "I built the backend API layer and handled blockchain integration for AgriChain. From designing the database architecture to connecting smart contracts with the REST endpoints, I ensured the data flows reliably across every stage of the supply chain.",
+      "I engineered the backend infrastructure and blockchain integration that powers AgriChain. From designing the Express API layer and MongoDB schemas to deploying and interacting with Solidity smart contracts on Sepolia, I ensured every supply-chain transaction is reliably recorded on-chain and accessible through robust REST endpoints.",
     name: "Chandu M",
-    designation: "Backend Engineer & Blockchain Specialist",
-    src: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1368&auto=format&fit=crop&ixlib=rb-4.0.3",
+    designation: "Backend & Blockchain",
+    src: "/team/chandu.jpeg",
   },
   {
     quote:
-      "I crafted the user experience and frontend interfaces for AgriChain — designing intuitive dashboards for farmers, processors, logistics, and retailers. My focus was making blockchain technology feel accessible and effortless for every user.",
+      "I designed and developed the user-facing experience of AgriChain — from wireframing intuitive dashboard layouts in Figma to implementing responsive React components with pixel-perfect styling. My focus was ensuring that every farmer, processor, and retailer could navigate the platform effortlessly, making blockchain technology feel invisible behind a beautiful interface.",
     name: "J A Dharma Sudeep",
-    designation: "Frontend Developer & UI/UX Designer",
-    src: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1368&auto=format&fit=crop&ixlib=rb-4.0.3",
+    designation: "UI/UX & Frontend",
+    src: "/team/sudeep.jpeg",
   },
 ];
 
