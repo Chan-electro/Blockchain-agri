@@ -2,10 +2,11 @@ import { type ReactNode, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import {
   LayoutDashboard, Package, Settings, LogOut, Sprout, Factory, Truck, Store,
-  ShieldCheck, Menu, X,
+  ShieldCheck, Menu, X, Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useChatSidebar } from "@/providers/ChatProvider";
 import { CHAIN_NAME, CONTRACT_ADDRESS, type Role } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ interface DashboardShellProps {
 
 export function DashboardShell({ title, subtitle, actions, children }: DashboardShellProps) {
   const { user, logout } = useAuth();
+  const { toggle: toggleChat } = useChatSidebar();
   const [mobileOpen, setMobileOpen] = useState(false);
   if (!user) return null;
   const nav = navItemsForRole(user.role);
@@ -107,6 +109,16 @@ export function DashboardShell({ title, subtitle, actions, children }: Dashboard
           </Badge>
 
           {actions}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleChat}
+            className="hidden gap-1.5 sm:inline-flex"
+          >
+            <Bot className="size-4" />
+            Ask AI
+          </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
