@@ -28,8 +28,12 @@ app.use(errorHandler(logger));
 async function startServer() {
     try {
         await assertChainReady();
-        app.listen(config.port, () => {
-            logger.info({ port: config.port, frontend: config.frontendUrl }, 'AgriChain backend ready');
+        await new Promise((resolve, reject) => {
+            const server = app.listen(config.port, () => {
+                logger.info({ port: config.port, frontend: config.frontendUrl }, 'AgriChain backend ready');
+                resolve(server);
+            });
+            server.once('error', reject);
         });
     } catch (err) {
         logger.fatal({ err: err.message }, 'Failed to start server');

@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowRight, Camera, QrCode, Scan, X, History, Shield, Leaf, AlertTriangle,
+  ArrowRight, Camera, QrCode, Scan, X, History, Shield, Leaf, AlertTriangle, LogOut,
 } from "lucide-react";
 import { Scanner } from "@yudiel/react-qr-scanner";
 
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/common/EmptyState";
+import { useAuth } from "@/hooks/useAuth";
 
 const RECENT_KEY = "agri_recent_scans";
 const MAX_RECENT = 5;
@@ -38,6 +39,7 @@ function extractBatchId(raw: string): number | null {
 
 export default function ConsumerScan() {
   const navigate = useNavigate();
+  const { logout, token } = useAuth();
   const [batchId, setBatchId] = useState("");
   const [showScanner, setShowScanner] = useState(false);
   const [scanError, setScanError] = useState("");
@@ -49,6 +51,16 @@ export default function ConsumerScan() {
     const next = [id, ...recent.filter((n) => n !== id)].slice(0, MAX_RECENT);
     setRecent(next);
     navigate(`/product/${id}`);
+  }
+
+  function handleSignOut() {
+    localStorage.removeItem(RECENT_KEY);
+    if (token) {
+      logout();
+      navigate("/login", { replace: true });
+    } else {
+      navigate("/");
+    }
   }
 
   function handleManualSubmit(e: FormEvent) {
@@ -73,8 +85,21 @@ export default function ConsumerScan() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-muted/30 p-4 sm:p-8">
-      <div className="mx-auto flex max-w-md flex-col gap-4 pt-4 sm:pt-12">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-muted/30">
+      <header className="flex items-center justify-between px-4 py-3 sm:px-8">
+        <Link to="/" className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors">
+          <Leaf className="size-4 text-primary" />
+          AgriChain
+        </Link>
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <LogOut className="size-4" />
+          Exit
+        </button>
+      </header>
+      <div className="mx-auto flex max-w-md flex-col gap-4 p-4 pt-4 sm:p-8 sm:pt-4">
         <Card>
           <CardHeader className="items-center gap-2 text-center">
             <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">

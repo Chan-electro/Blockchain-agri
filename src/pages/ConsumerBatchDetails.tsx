@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, CheckCircle, Truck, ShoppingBag, Leaf, MapPin,
-  Loader2, AlertCircle, Factory,
+  Loader2, AlertCircle, Factory, LogOut,
 } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip as ReTooltip } from "recharts";
 
@@ -13,6 +13,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { TxHashChip } from "@/components/common/TxHashChip";
 import { EmptyState } from "@/components/common/EmptyState";
 import { api, CHAIN_NAME, type Batch, type ApiError } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 function roleIcon(role: string) {
   switch (role.toUpperCase()) {
@@ -43,6 +44,7 @@ const PIE_COLOR: Record<string, string> = {
 export default function ConsumerBatchDetails() {
   const { batchId } = useParams<{ batchId: string }>();
   const navigate = useNavigate();
+  const { logout, token } = useAuth();
   const [batch, setBatch] = useState<Batch | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -91,9 +93,32 @@ export default function ConsumerBatchDetails() {
   const handoffCount = batch.priceBreakdown?.length ?? 0;
   const verified = handoffCount >= 1;
 
+  function handleSignOut() {
+    try { localStorage.removeItem("agri_recent_scans"); } catch { /* ignore */ }
+    if (token) {
+      logout();
+      navigate("/login", { replace: true });
+    } else {
+      navigate("/");
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-muted/30 via-background to-background p-4 pb-16 sm:p-8">
-      <div className="mx-auto max-w-3xl space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-muted/30 via-background to-background">
+      <header className="flex items-center justify-between px-4 py-3 sm:px-8">
+        <Link to="/" className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors">
+          <Leaf className="size-4 text-primary" />
+          AgriChain
+        </Link>
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <LogOut className="size-4" />
+          Exit
+        </button>
+      </header>
+      <div className="mx-auto max-w-3xl space-y-6 p-4 pb-16 sm:p-8">
         <Button variant="ghost" className="gap-2 pl-0 transition hover:pl-2" onClick={() => navigate("/scan")}>
           <ArrowLeft className="size-4" /> Back to scan
         </Button>
