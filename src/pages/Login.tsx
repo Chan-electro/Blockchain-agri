@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -23,7 +23,6 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const { login, status, user } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,9 +41,7 @@ export default function Login() {
     try {
       const loggedIn = await login(values.email, values.password);
       toast.success(`Welcome back, ${loggedIn.email}`);
-      const state = location.state as { from?: string } | null;
-      const dest = state?.from && state.from !== "/login" ? state.from : DEFAULT_ROLE_HOME[loggedIn.role];
-      navigate(dest, { replace: true });
+      navigate(DEFAULT_ROLE_HOME[loggedIn.role], { replace: true });
     } catch (err) {
       const e = err as ApiError;
       toast.error(e.message || "Login failed");

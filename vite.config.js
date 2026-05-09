@@ -7,6 +7,7 @@ import path from 'path'
 export default defineConfig({
   plugins: [react(), basicSsl()],
   server: {
+    host: true,
     proxy: {
       '/api': 'http://127.0.0.1:3001'
     }
