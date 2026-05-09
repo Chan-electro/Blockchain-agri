@@ -16,6 +16,7 @@ const config = {
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || '24h',
     bcryptRounds: 10,
     isProduction: process.env.NODE_ENV === 'production',
+    openRouterApiKey: process.env.OPENROUTER_API_KEY || '',
 };
 
 module.exports = config;
