@@ -10,6 +10,7 @@ const auth = require('../middleware/auth');
 const requireRole = require('../middleware/requireRole');
 const validate = require('../middleware/validate');
 const logger = require('../lib/logger');
+const vectorStore = require('../services/vectorStore');
 
 const router = express.Router();
 
@@ -115,6 +116,7 @@ router.post(
             });
 
             logger.info({ batchId, txHash, by: req.user.email }, 'Batch created');
+            vectorStore.upsert(batchDetails.id).catch((e) => logger.warn({ e }, 'vectorStore upsert failed'));
             const response = await buildWriteResponse(batchDetails.id, txHash, blockNumber);
             res.status(201).json(successResponse(response));
         } catch (err) {
@@ -137,6 +139,7 @@ router.post(
             const batchDetails = await blockchain.getBatchDetails(batchId);
             await syncBatchToDb(batchDetails, txHash, blockNumber, txHash);
             logger.info({ batchId, txHash, by: req.user.email }, 'Batch processed');
+            vectorStore.upsert(batchId).catch((e) => logger.warn({ e }, 'vectorStore upsert failed'));
             const response = await buildWriteResponse(batchId, txHash, blockNumber);
             res.json(successResponse(response));
         } catch (err) {
@@ -159,6 +162,7 @@ router.post(
             const batchDetails = await blockchain.getBatchDetails(batchId);
             await syncBatchToDb(batchDetails, txHash, blockNumber, txHash);
             logger.info({ batchId, txHash, by: req.user.email }, 'Batch in transit');
+            vectorStore.upsert(batchId).catch((e) => logger.warn({ e }, 'vectorStore upsert failed'));
             const response = await buildWriteResponse(batchId, txHash, blockNumber);
             res.json(successResponse(response));
         } catch (err) {
@@ -181,6 +185,7 @@ router.post(
             const batchDetails = await blockchain.getBatchDetails(batchId);
             await syncBatchToDb(batchDetails, txHash, blockNumber, txHash);
             logger.info({ batchId, txHash, by: req.user.email }, 'Batch at retail');
+            vectorStore.upsert(batchId).catch((e) => logger.warn({ e }, 'vectorStore upsert failed'));
             const response = await buildWriteResponse(batchId, txHash, blockNumber);
             res.json(successResponse(response));
         } catch (err) {
@@ -210,6 +215,7 @@ router.post('/batch/update', writeLimiter, auth, validate(updateSchema), async (
 
         const batchDetails = await blockchain.getBatchDetails(batchId);
         await syncBatchToDb(batchDetails, result.txHash, result.blockNumber, result.txHash);
+        vectorStore.upsert(batchId).catch((e) => logger.warn({ e }, 'vectorStore upsert failed'));
         const response = await buildWriteResponse(batchId, result.txHash, result.blockNumber);
         res.json(successResponse(response));
     } catch (err) {
